@@ -29,23 +29,22 @@ import { GitCommandGitProject } from "@atomist/automation-client/project/git/Git
 import { GitProject } from "@atomist/automation-client/project/git/GitProject";
 import { NodeFsLocalProject } from "@atomist/automation-client/project/local/NodeFsLocalProject";
 import {
+    ExecuteGoal,
     ExecuteGoalResult,
-    ExecuteGoalWithLog,
+    GoalInvocation,
     PrepareForGoalExecution,
     ProgressLog,
     ProjectLoader,
-    RunWithLogContext,
 } from "@atomist/sdm";
 import {
     createRelease,
     createStatus,
     createTagForStatus,
     DockerOptions,
-    NpmOptions,
     ProjectIdentifier,
     readSdmVersion,
 } from "@atomist/sdm-core";
-import { branchFromCommit } from "@atomist/sdm/api-helper/goal/executeBuild";
+import { NpmOptions } from "@atomist/sdm-pack-node";
 import { DelimitedWriteProgressLogDecorator } from "@atomist/sdm/api-helper/log/DelimitedWriteProgressLogDecorator";
 import {
     ChildProcessResult,
@@ -63,15 +62,14 @@ interface ProjectRegistryInfo {
     version: string;
 }
 
-async function rwlcVersion(rwlc: RunWithLogContext): Promise<string> {
-    const commit = rwlc.status.commit;
+async function rwlcVersion(gi: GoalInvocation): Promise<string> {
     const version = await readSdmVersion(
-        commit.repo.owner,
-        commit.repo.name,
-        commit.repo.org.provider.providerId,
-        commit.sha,
-        branchFromCommit(commit),
-        rwlc.context);
+        gi.sdmGoal.repo.owner,
+        gi.sdmGoal.repo.name,
+        gi.sdmGoal.repo.providerId,
+        gi.sdmGoal.sha,
+        gi.sdmGoal.branch,
+        gi.context);
     return version;
 }
 
@@ -199,7 +197,7 @@ async function executeLoggers(els: ExecuteLogger[], progressLog: ProgressLog): P
     return Success;
 }
 
-export async function npmReleasePreparation(p: GitProject, rwlc: RunWithLogContext): Promise<ExecuteGoalResult> {
+export async function npmReleasePreparation(p: GitProject, gi: GoalInvocation): Promise<ExecuteGoalResult> {
     const pjFile = await p.getFile("package.json");
     if (!pjFile) {
         const msg = `NPM project does not have a package.json`;
@@ -220,7 +218,7 @@ export async function npmReleasePreparation(p: GitProject, rwlc: RunWithLogConte
         logger.error(msg);
         return Promise.reject(new Error(msg));
     }
-    const version = await rwlcVersion(rwlc);
+    const version = await rwlcVersion(gi);
     const versionRelease = releaseVersion(version);
     const npmOptions = configurationValue<NpmOptions>("sdm.npm");
     if (!npmOptions.registry) {
@@ -259,7 +257,7 @@ export async function npmReleasePreparation(p: GitProject, rwlc: RunWithLogConte
         },
     ];
     const els = cmds.map(spawnExecuteLogger);
-    return executeLoggers(els, rwlc.progressLog);
+    return executeLoggers(els, gi.progressLog);
 }
 
 export const NpmReleasePreparations: PrepareForGoalExecution[] = [npmReleasePreparation];
@@ -269,19 +267,19 @@ export function executeReleaseNpm(
     projectIdentifier: ProjectIdentifier,
     preparations: PrepareForGoalExecution[] = NpmReleasePreparations,
     options?: NpmOptions,
-): ExecuteGoalWithLog {
+): ExecuteGoal {
 
     if (!options.npmrc) {
         throw new Error(`No npmrc defined in NPM options`);
     }
-    return async (rwlc: RunWithLogContext): Promise<ExecuteGoalResult> => {
-        const { credentials, id, context } = rwlc;
+    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
+        const { credentials, id, context } = gi;
         return projectLoader.doWithProject({ credentials, id, context, readOnly: false }, async (project: GitProject) => {
 
             await fs.writeFile(path.join(project.baseDir, ".npmrc"), options.npmrc);
 
             for (const preparation of preparations) {
-                const pResult = await preparation(project, rwlc);
+                const pResult = await preparation(project, gi);
                 if (pResult.code !== 0) {
                     return pResult;
                 }
@@ -294,7 +292,7 @@ export function executeReleaseNpm(
                     "--registry", options.registry,
                     "--access", (options.access) ? options.access : "restricted",
                 ],
-            }, { cwd: project.baseDir }, rwlc.progressLog);
+            }, { cwd: project.baseDir }, gi.progressLog);
             if (result.error) {
                 return result;
             }
@@ -325,8 +323,8 @@ export function executeReleaseNpm(
     };
 }
 
-export async function dockerReleasePreparation(p: GitProject, rwlc: RunWithLogContext): Promise<ExecuteGoalResult> {
-    const version = await rwlcVersion(rwlc);
+export async function dockerReleasePreparation(p: GitProject, gi: GoalInvocation): Promise<ExecuteGoalResult> {
+    const version = await rwlcVersion(gi);
     const dockerOptions = configurationValue<DockerOptions>("sdm.docker.hub");
     const image = dockerImage({
         registry: dockerOptions.registry,
@@ -346,7 +344,7 @@ export async function dockerReleasePreparation(p: GitProject, rwlc: RunWithLogCo
         },
     ];
     const els = cmds.map(spawnExecuteLogger);
-    return executeLoggers(els, rwlc.progressLog);
+    return executeLoggers(els, gi.progressLog);
 }
 
 export const DockerReleasePreparations: PrepareForGoalExecution[] = [dockerReleasePreparation];
@@ -355,33 +353,32 @@ export function executeReleaseDocker(
     projectLoader: ProjectLoader,
     preparations: PrepareForGoalExecution[] = DockerReleasePreparations,
     options?: DockerOptions,
-): ExecuteGoalWithLog {
+): ExecuteGoal {
 
-    return async (rwlc: RunWithLogContext): Promise<ExecuteGoalResult> => {
-        const { credentials, id, context } = rwlc;
+    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
+        const { credentials, id, context } = gi;
         if (!options.registry) {
             throw new Error(`No registry defined in Docker options`);
         }
         return projectLoader.doWithProject({ credentials, id, context, readOnly: false }, async (project: GitProject) => {
 
             for (const preparation of preparations) {
-                const pResult = await preparation(project, rwlc);
+                const pResult = await preparation(project, gi);
                 if (pResult.code !== 0) {
                     return pResult;
                 }
             }
 
-            const commit = rwlc.status.commit;
-            const version = await rwlcVersion(rwlc);
+            const version = await rwlcVersion(gi);
             const versionRelease = releaseVersion(version);
             const image = dockerImage({
                 registry: options.registry,
-                name: commit.repo.name,
+                name: gi.sdmGoal.repo.name,
                 version,
             });
             const tag = dockerImage({
                 registry: options.registry,
-                name: commit.repo.name,
+                name: gi.sdmGoal.repo.name,
                 version: versionRelease,
             });
 
@@ -397,7 +394,7 @@ export function executeReleaseDocker(
                 },
             ];
             const els = cmds.map(spawnExecuteLogger);
-            return executeLoggers(els, rwlc.progressLog);
+            return executeLoggers(els, gi.progressLog);
         });
     };
 }
@@ -405,16 +402,15 @@ export function executeReleaseDocker(
 /**
  * Create release semantic version tag and GitHub release for that tag.
  */
-export function executeReleaseTag(projectLoader: ProjectLoader): ExecuteGoalWithLog {
-    return async (rwlc: RunWithLogContext): Promise<ExecuteGoalResult> => {
-        const { status, credentials, id, context } = rwlc;
+export function executeReleaseTag(projectLoader: ProjectLoader): ExecuteGoal {
+    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
+        const { credentials, id, context } = gi;
 
         return projectLoader.doWithProject({ credentials, id, context, readOnly: true }, async p => {
-            const commit = status.commit;
-            const version = await rwlcVersion(rwlc);
+            const version = await rwlcVersion(gi);
             const versionRelease = releaseVersion(version);
-            await createTagForStatus(id, commit.sha, commit.message, versionRelease, credentials);
-            const commitTitle = commit.message.replace(/\n[\S\s]*/, "");
+            await createTagForStatus(id, gi.sdmGoal.sha, gi.sdmGoal.push.after.message, versionRelease, credentials);
+            const commitTitle = gi.sdmGoal.push.after.message.replace(/\n[\S\s]*/, "");
             const release = {
                 tag_name: versionRelease,
                 name: `${versionRelease}: ${commitTitle}`,
@@ -435,7 +431,7 @@ function typedocDir(baseDir: string): string {
     return path.join(baseDir, "build", "typedoc");
 }
 
-export async function docsReleasePreparation(p: GitProject, rwlc: RunWithLogContext): Promise<ExecuteGoalResult> {
+export async function docsReleasePreparation(p: GitProject, gi: GoalInvocation): Promise<ExecuteGoalResult> {
     const cmds: SpawnWatchCommand[] = [
         {
             cmd: { command: "npm", args: ["ci"] },
@@ -455,7 +451,7 @@ export async function docsReleasePreparation(p: GitProject, rwlc: RunWithLogCont
         },
     ];
     const els = cmds.map(spawnExecuteLogger);
-    return executeLoggers(els, rwlc.progressLog);
+    return executeLoggers(els, gi.progressLog);
 }
 
 export const DocsReleasePreparations: PrepareForGoalExecution[] = [docsReleasePreparation];
@@ -466,20 +462,20 @@ export const DocsReleasePreparations: PrepareForGoalExecution[] = [docsReleasePr
 export function executeReleaseDocs(
     projectLoader: ProjectLoader,
     preparations: PrepareForGoalExecution[] = DocsReleasePreparations,
-): ExecuteGoalWithLog {
+): ExecuteGoal {
 
-    return async (rwlc: RunWithLogContext): Promise<ExecuteGoalResult> => {
-        const { credentials, id, context } = rwlc;
+    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
+        const { credentials, id, context } = gi;
         return projectLoader.doWithProject({ credentials, id, context, readOnly: false }, async (project: GitProject) => {
 
             for (const preparation of preparations) {
-                const pResult = await preparation(project, rwlc);
+                const pResult = await preparation(project, gi);
                 if (pResult.code !== 0) {
                     return pResult;
                 }
             }
 
-            const version = await rwlcVersion(rwlc);
+            const version = await rwlcVersion(gi);
             const versionRelease = releaseVersion(version);
             const commitMsg = `Publishing TypeDoc for version ${versionRelease}`;
             const docDir = typedocDir(project.baseDir);
@@ -496,7 +492,7 @@ export function executeReleaseDocs(
                 () => docGitProject.push({ force: true }),
             ];
             const els = gitOps.map(op => gitExecuteLogger(docGitProject, op));
-            const gitRes = await executeLoggers(els, rwlc.progressLog);
+            const gitRes = await executeLoggers(els, gi.progressLog);
             if (gitRes.code !== 0) {
                 return gitRes;
             }
@@ -511,13 +507,13 @@ export function executeReleaseDocs(
 export function executeReleaseVersion(
     projectLoader: ProjectLoader,
     projectIdentifier: ProjectIdentifier,
-): ExecuteGoalWithLog {
+): ExecuteGoal {
 
-    return async (rwlc: RunWithLogContext): Promise<ExecuteGoalResult> => {
-        const { credentials, id, context } = rwlc;
+    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
+        const { credentials, id, context } = gi;
 
         return projectLoader.doWithProject({ credentials, id, context, readOnly: false }, async p => {
-            const version = await rwlcVersion(rwlc);
+            const version = await rwlcVersion(gi);
             const versionRelease = releaseVersion(version);
             const gp = p as GitCommandGitProject;
 
@@ -527,7 +523,7 @@ export function executeReleaseVersion(
                 gitExecuteLogger(gp, () => gp.checkout(branch)),
                 spawnExecuteLogger({ cmd: { command: "git", args: ["pull", remote, branch] }, cwd: gp.baseDir }),
             ];
-            const preRes = await executeLoggers(preEls, rwlc.progressLog);
+            const preRes = await executeLoggers(preEls, gi.progressLog);
             if (preRes.code !== 0) {
                 return preRes;
             }
@@ -538,7 +534,7 @@ export function executeReleaseVersion(
                 const message = `current master package version (${pi.version}) seems to have already been ` +
                     `incremented after ${releaseVersion} release`;
                 console.debug(message);
-                const log = new DelimitedWriteProgressLogDecorator(rwlc.progressLog, "\n");
+                const log = new DelimitedWriteProgressLogDecorator(gi.progressLog, "\n");
                 log.write(`${message}\n`);
                 await log.flush();
                 await log.close();
@@ -550,7 +546,7 @@ export function executeReleaseVersion(
                 gitExecuteLogger(gp, () => gp.commit(`Increment version after ${versionRelease} release`)),
                 gitExecuteLogger(gp, () => gp.push()),
             ];
-            return executeLoggers(postEls, rwlc.progressLog);
+            return executeLoggers(postEls, gi.progressLog);
         });
     };
 }

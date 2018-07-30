@@ -14,41 +14,20 @@
  * limitations under the License.
  */
 
-import {
-    HandleCommand,
-    logger,
-} from "@atomist/automation-client";
+import { logger } from "@atomist/automation-client";
 import { PullRequest } from "@atomist/automation-client/operations/edit/editModes";
-import { SimpleProjectEditor } from "@atomist/automation-client/operations/edit/projectEditor";
 import { buttonForCommand } from "@atomist/automation-client/spi/message/MessageClient";
 import {
     ChannelLinkListener,
-    EmptyParameters,
-    SoftwareDeliveryMachine,
+    CodeTransform,
+    CodeTransformRegistration,
 } from "@atomist/sdm";
-import { editorCommand } from "@atomist/sdm/api-helper/command/editor/editorCommand";
 import * as slack from "@atomist/slack-messages/SlackMessages";
 
 export const AddDockerfileCommandName = "AddDockerfile";
 
-export function addDockerfile(sdm: SoftwareDeliveryMachine): HandleCommand {
-    return editorCommand(
-    sdm,
-    () => addDockerfileEditor,
-    AddDockerfileCommandName,
-    EmptyParameters,
-    {
-        intent: "add dockerfile",
-        editMode: () => new PullRequest(
-            "add-dockerfile",
-            "Add Dockerfile",
-            "Add Dockerfile to project\n\n[atomist:generated]",
-            "Add Dockerfile\n\n[atomist:generated]",
-        ),
-    });
-}
 
-export const addDockerfileEditor: SimpleProjectEditor = async (p, ctx) => {
+export const addDockerfileTransform: CodeTransform = async (p, ctx) => {
     if (p.fileExistsSync("package.json")) {
         return p.addFile("Dockerfile", nodeDockerfile)
             .then(pd => pd.addFile(".dockerignore", nodeDockerignore));
@@ -58,6 +37,18 @@ export const addDockerfileEditor: SimpleProjectEditor = async (p, ctx) => {
     }
     logger.info("Project has neither package.json nor pom.xml");
     return p;
+};
+
+export const AddDockerfile: CodeTransformRegistration = {
+    transform: addDockerfileTransform,
+    name: AddDockerfileCommandName,
+    intent: "add dockerfile",
+    transformPresentation: () => new PullRequest(
+        `add-dockerfile-${new Date().getTime()}`,
+        "Add Dockerfile",
+        `Add Dockerfile
+
+[atomist:generated]`),
 };
 
 export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {

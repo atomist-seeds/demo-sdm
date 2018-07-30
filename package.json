@@ -20,21 +20,17 @@
     "url": "https://github.com/atomist/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "^0.17.4-20180621144910",
-    "@atomist/sdm": "0.3.0-20180625100939",
-    "@atomist/sdm-core": "0.3.1-20180625100312",
-    "@atomist/sdm-pack-k8": "0.1.0-20180625090858",
-    "@atomist/sdm-pack-spring": "0.1.4-20180625090653",
+    "@atomist/automation-client": "0.18.1-20180726234320",
+    "@atomist/sdm": "0.3.2-20180730010005",
+    "@atomist/sdm-core": "0.3.2-20180730090213",
+    "@atomist/sdm-pack-k8": "0.1.2-20180705162518",
+    "@atomist/sdm-pack-node": "0.1.0-20180730064805",
+    "@atomist/sdm-pack-spring": "0.1.7-20180715090742",
     "@atomist/slack-messages": "^0.12.1",
-    "@typed/curry": "^1.0.1",
     "dateformat": "^3.0.3",
     "fs-extra": "^6.0.1",
     "lodash": "^4.17.10",
-    "logzio-nodejs": "^0.4.10",
-    "serialize-error": "^2.1.0",
-    "tslint": "^5.9.1",
-    "uuid": "^3.2.1",
-    "winston-logzio": "^1.0.6"
+    "tslint": "^5.9.1"
   },
   "devDependencies": {
     "@types/dateformat": "^1.0.1",
@@ -73,7 +69,7 @@
     "compile": "npm-run-all git:info compile:gql compile:ts",
     "compile:gql": "npm-run-all gql:gen gql:copy",
     "compile:ts": "tsc --project .",
-    "debug": "node $NODE_DEBUG_OPTION node_modules/@atomist/automation-client/start.client.js",
+    "debug": "node --inspect node_modules/@atomist/automation-client/start.client.js",
     "fmt": "npm-run-all fmt:ts fmt:gql",
     "fmt:ts": "tsfmt --replace",
     "fmt:gql": "prettier --write \"**/*.graphql\"",

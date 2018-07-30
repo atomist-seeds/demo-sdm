@@ -25,8 +25,12 @@ import {
     DockerBuildGoal,
     DockerOptions,
     executeDockerBuild,
-    executePublish,
     executeVersioner,
+    tagRepo,
+    VersionGoal,
+} from "@atomist/sdm-core";
+import {
+    executePublish,
     IsNode,
     nodeBuilder,
     NodeProjectIdentifier,
@@ -34,10 +38,8 @@ import {
     NpmOptions,
     NpmPreparations,
     PackageLockFingerprinter,
-    tagRepo,
     tslintFix,
-    VersionGoal,
-} from "@atomist/sdm-core";
+} from "@atomist/sdm-pack-node";
 import * as build from "@atomist/sdm/api-helper/dsl/buildDsl";
 import { AutomationClientTagger } from "../support/tagger";
 import {
@@ -66,10 +68,10 @@ export function addNodeSupport(sdm: SoftwareDeliveryMachine) {
     sdm.addBuildRules(
         build.when(IsNode, hasPackageLock)
             .itMeans("npm run build")
-            .set(nodeBuilder(sdm.configuration.sdm.projectLoader, "npm ci", "npm run build")),
+            .set(nodeBuilder(sdm, "npm ci", "npm run build")),
         build.when(IsNode, not(hasPackageLock))
             .itMeans("npm run build (no package-lock.json)")
-            .set(nodeBuilder(sdm.configuration.sdm.projectLoader, "npm install", "npm run build")));
+            .set(nodeBuilder(sdm, "npm install", "npm run build")));
 
     sdm.addGoalImplementation("nodeVersioner", VersionGoal,
         executeVersioner(sdm.configuration.sdm.projectLoader, NodeProjectVersioner), { pushTest: IsNode })
@@ -125,8 +127,8 @@ export function addNodeSupport(sdm: SoftwareDeliveryMachine) {
             sideEffectName: "@atomist/k8-automation",
         });
 
-    sdm.addNewRepoWithCodeActions(tagRepo(AutomationClientTagger))
-        .addAutofixes(tslintFix)
-        .addFingerprinterRegistrations(new PackageLockFingerprinter());
+    sdm.addNewRepoWithCodeListener(tagRepo(AutomationClientTagger))
+        .addAutofix(tslintFix)
+        .addFingerprinterRegistration(new PackageLockFingerprinter());
 
 }

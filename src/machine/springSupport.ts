@@ -18,10 +18,10 @@ import { GitHubRepoRef } from "@atomist/automation-client/operations/common/GitH
 import { GitProject } from "@atomist/automation-client/project/git/GitProject";
 import {
     allSatisfied,
+    ExecuteGoal,
     ExecuteGoalResult,
-    ExecuteGoalWithLog,
+    GoalInvocation,
     hasFile,
-    RunWithLogContext,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import {
@@ -46,7 +46,6 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { CommonJavaGeneratorConfig } from "@atomist/sdm-pack-spring/dist";
 import * as build from "@atomist/sdm/api-helper/dsl/buildDsl";
-import { branchFromCommit } from "@atomist/sdm/api-helper/goal/executeBuild";
 import { DelimitedWriteProgressLogDecorator } from "@atomist/sdm/api-helper/log/DelimitedWriteProgressLogDecorator";
 import { createEphemeralProgressLog } from "@atomist/sdm/api-helper/log/EphemeralProgressLog";
 import { spawnAndWatch } from "@atomist/sdm/api-helper/misc/spawned";
@@ -70,37 +69,36 @@ import {
 const MavenProjectVersioner: ProjectVersioner = async (status, p, log) => {
     const projectId = await MavenProjectIdentifier(p);
     const baseVersion = projectId.version.replace(/-.*/, "");
-    const branch = branchFromCommit(status.commit).split("/").join(".");
-    const branchSuffix = (branch !== status.commit.repo.defaultBranch) ? `${branch}.` : "";
+    const branch = status.branch.split("/").join(".");
+    const branchSuffix = (branch !== status.push.repo.defaultBranch) ? `${branch}.` : "";
     const version = `${baseVersion}-${branchSuffix}${df(new Date(), "yyyymmddHHMMss")}`;
     return version;
 };
 
-async function mvnVersionPreparation(p: GitProject, rwlc: RunWithLogContext): Promise<ExecuteGoalResult> {
-    const commit = rwlc.status.commit;
+async function mvnVersionPreparation(p: GitProject, gi: GoalInvocation): Promise<ExecuteGoalResult> {
     const version = await readSdmVersion(
-        commit.repo.owner,
-        commit.repo.name,
-        commit.repo.org.provider.providerId,
-        commit.sha,
-        branchFromCommit(commit),
-        rwlc.context);
+        gi.sdmGoal.repo.owner,
+        gi.sdmGoal.repo.name,
+        gi.sdmGoal.repo.providerId,
+        gi.sdmGoal.sha,
+        gi.sdmGoal.branch,
+        gi.context);
     return spawnAndWatch({
         command: "mvn", args: ["versions:set", `-DnewVersion=${version}`, "versions:commit"],
-    }, { cwd: p.baseDir }, rwlc.progressLog);
+    }, { cwd: p.baseDir }, gi.progressLog);
 }
 
-async function mvnPackagePreparation(p: GitProject, rwlc: RunWithLogContext): Promise<ExecuteGoalResult> {
+async function mvnPackagePreparation(p: GitProject, gi: GoalInvocation): Promise<ExecuteGoalResult> {
     return spawnAndWatch({
         command: "mvn", args: ["package", "-DskipTests=true"],
-    }, { cwd: p.baseDir }, rwlc.progressLog);
+    }, { cwd: p.baseDir }, gi.progressLog);
 }
 
 const MavenPreparations = [mvnVersionPreparation, mvnPackagePreparation];
 
-function noOpImplementation(action: string): ExecuteGoalWithLog {
-    return async (rwlc: RunWithLogContext): Promise<ExecuteGoalResult> => {
-        const log = new DelimitedWriteProgressLogDecorator(rwlc.progressLog, "\n");
+function noOpImplementation(action: string): ExecuteGoal {
+    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
+        const log = new DelimitedWriteProgressLogDecorator(gi.progressLog, "\n");
         const message = `${action} requires no implementation`;
         log.write(message);
         await log.flush();
@@ -114,7 +112,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
     sdm.addBuildRules(
         build.when(IsMaven)
             .itMeans("mvn package")
-            .set(new MavenBuilder(sdm.configuration.sdm.artifactStore, createEphemeralProgressLog, sdm.configuration.sdm.projectLoader)));
+            .set(new MavenBuilder(sdm, false)));
 
     sdm.addGoalImplementation("mvnVersioner", VersionGoal,
         executeVersioner(sdm.configuration.sdm.projectLoader, MavenProjectVersioner), { pushTest: IsMaven })
@@ -146,14 +144,14 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
         .addGoalImplementation("mvnVersionRelease", ReleaseVersionGoal,
             executeReleaseVersion(sdm.configuration.sdm.projectLoader, MavenProjectIdentifier), { pushTest: IsMaven });
 
-    sdm.addGenerators(springBootGenerator({
+    sdm.addGeneratorCommand(springBootGenerator({
                 ...CommonJavaGeneratorConfig,
                 seed: () => new GitHubRepoRef("atomist-playground", "spring-rest-seed"),
                 groupId: "atomist",
             }, {
                 intent: "create spring",
             }))
-        .addNewRepoWithCodeActions(tagRepo(springBootTagger))
-        .addChannelLinkListeners(SuggestAddingDockerfile);
+        .addNewRepoWithCodeListener(tagRepo(springBootTagger))
+        .addChannelLinkListener(SuggestAddingDockerfile);
 
 }

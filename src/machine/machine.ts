@@ -26,12 +26,10 @@ import {
 } from "@atomist/sdm";
 import {
     createSoftwareDeliveryMachine,
-    disableDeploy,
-    enableDeploy,
+    DisableDeploy,
+    EnableDeploy,
     executeTag,
     HasDockerfile,
-    IsAtomistAutomationClient,
-    IsNode,
     NoGoals,
     summarizeGoalsInGitHubStatus,
     TagGoal,
@@ -39,10 +37,15 @@ import {
 } from "@atomist/sdm-core";
 import { kubernetesSupport } from "@atomist/sdm-pack-k8/dist";
 import {
+    IsAtomistAutomationClient,
+    IsNode,
+} from "@atomist/sdm-pack-node";
+import {
     HasSpringBootApplicationClass,
     IsMaven,
 } from "@atomist/sdm-pack-spring";
-import { addDockerfile } from "../commands/addDockerfile";
+import { gitHubTeamVote } from "@atomist/sdm/api-helper/voter/githubTeamVote";
+import { AddDockerfile } from "../commands/addDockerfile";
 import { IsSimplifiedDeployment } from "../support/isSimplifiedDeployment";
 import {
     MaterialChangeToJvmRepo,
@@ -113,7 +116,9 @@ export function machine(
 
     );
 
-    sdm.addSupportingCommands(enableDeploy, disableDeploy, () => addDockerfile(sdm));
+    sdm.addCommand(EnableDeploy)
+        .addCommand(DisableDeploy)
+        .addCodeTransformCommand(AddDockerfile);
 
     sdm.addGoalImplementation("tag", TagGoal,
         executeTag(sdm.configuration.sdm.projectLoader));
@@ -132,6 +137,8 @@ export function machine(
             callback: kubernetesDataCallback(sdm.configuration),
         }],
     }));
+
+    sdm.addGoalApprovalRequestVote(gitHubTeamVote());
 
     summarizeGoalsInGitHubStatus(sdm);
 

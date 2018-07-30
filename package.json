@@ -20,12 +20,12 @@
     "url": "https://github.com/atomist/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "0.18.1-20180726234320",
+    "@atomist/automation-client": "0.18.1-20180728225753",
     "@atomist/sdm": "0.3.2-20180730010005",
-    "@atomist/sdm-core": "0.3.2-20180730090213",
+    "@atomist/sdm-core": "0.3.2-20180730094924",
     "@atomist/sdm-pack-k8": "0.1.2-20180705162518",
-    "@atomist/sdm-pack-node": "0.1.0-20180730064805",
-    "@atomist/sdm-pack-spring": "0.1.7-20180715090742",
+    "@atomist/sdm-pack-node": "0.1.0-20180730101702",
+    "@atomist/sdm-pack-spring": "0.1.8-20180728181050",
     "@atomist/slack-messages": "^0.12.1",
     "dateformat": "^3.0.3",
     "fs-extra": "^6.0.1",

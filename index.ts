@@ -13,20 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as assert from "power-assert";
-
-describe("javaPatterns", () => {
-
-
-    it("null check", () => {
-        const test = undefined;
-        if (!test) {
-            console.log("if");
-        } else {
-            console.log("else");
-        }
-    });
-
-
-});

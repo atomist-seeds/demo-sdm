@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-import { logger } from "@atomist/automation-client";
-import { PullRequest } from "@atomist/automation-client/operations/edit/editModes";
-import { buttonForCommand } from "@atomist/automation-client/spi/message/MessageClient";
 import {
+    BranchCommit,
+    buttonForCommand,
+    logger,
+} from "@atomist/automation-client";
+import {
+    AutoMergeMethod,
+    AutoMergeMode,
     ChannelLinkListener,
     CodeTransform,
     CodeTransformRegistration,
 } from "@atomist/sdm";
-import * as slack from "@atomist/slack-messages/SlackMessages";
+import { BuildAwareMarker } from "@atomist/sdm-pack-build";
+import {
+    Attachment,
+    SlackMessage,
+} from "@atomist/slack-messages";
 
 export const AddDockerfileCommandName = "AddDockerfile";
 
-
 export const addDockerfileTransform: CodeTransform = async (p, ctx) => {
-    if (p.fileExistsSync("package.json")) {
-        return p.addFile("Dockerfile", nodeDockerfile)
-            .then(pd => pd.addFile(".dockerignore", nodeDockerignore));
-    } else if (p.fileExistsSync("pom.xml")) {
+    if (p.fileExistsSync("pom.xml")) {
         return p.addFile("Dockerfile", springDockerfile)
             .then(pd => pd.addFile(".dockerignore", springDockerignore));
     }
-    logger.info("Project has neither package.json nor pom.xml");
+    logger.info("Project has no pom.xml");
     return p;
 };
 
@@ -43,12 +47,12 @@ export const AddDockerfile: CodeTransformRegistration = {
     transform: addDockerfileTransform,
     name: AddDockerfileCommandName,
     intent: "add dockerfile",
-    transformPresentation: () => new PullRequest(
-        `add-dockerfile-${new Date().getTime()}`,
-        "Add Dockerfile",
-        `Add Dockerfile
+    transformPresentation: () => ({
+        message: `Add Dockerfile
 
-[atomist:generated]`),
+${BuildAwareMarker} ${AutoMergeMode.SuccessfulCheck} ${AutoMergeMethod.Merge}`,
+        branch: `add-dockerfile-${Date.now()}`,
+    } as BranchCommit),
 };
 
 export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {
@@ -61,7 +65,7 @@ export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {
         return;
     }
 
-    const attachment: slack.Attachment = {
+    const attachment: Attachment = {
         text: "Add a Dockerfile to your new repo?",
         fallback: "Add a Dockerfile to your new repo?",
         actions: [buttonForCommand({ text: "Add Dockerfile" },
@@ -70,69 +74,13 @@ export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {
         ),
         ],
     };
-    const message: slack.SlackMessage = {
+    const message: SlackMessage = {
         attachments: [attachment],
     };
     return inv.addressNewlyLinkedChannel(message);
 };
 
 /* tslint:disable:max-line-length */
-
-const nodeDockerfile = `FROM node:9
-
-LABEL maintainer="Atomist <docker@atomist.com>"
-
-ENV DUMB_INIT_VERSION=1.2.1
-
-RUN curl -s -L -O https://github.com/Yelp/dumb-init/releases/download/v$DUMB_INIT_VERSION/dumb-init_\${DUMB_INIT_VERSION}_amd64.deb \\
-    && dpkg -i dumb-init_\${DUMB_INIT_VERSION}_amd64.deb \\
-    && rm -f dumb-init_\${DUMB_INIT_VERSION}_amd64.deb
-
-RUN mkdir -p /opt/app
-
-WORKDIR /opt/app
-
-EXPOSE 2866
-
-ENV NPM_CONFIG_LOGLEVEL warn
-
-ENV SUPPRESS_NO_CONFIG_WARNING true
-
-ENTRYPOINT ["dumb-init", "node", "--trace-warnings", "--expose_gc", "--optimize_for_size", "--always_compact", "--max_old_space_size=256"]
-
-CMD ["node_modules/@atomist/automation-client/start.client.js"]
-
-RUN npm install -g npm@6.0.1
-
-COPY package.json package-lock.json ./
-
-RUN npm ci --only=production
-
-COPY . .
-`;
-
-const nodeDockerignore = `.idea/
-*.iml
-.vscode/
-**/*~
-**/.#*
-.git*
-.npm*
-.travis.yml
-.atomist/
-assets/kube/
-node_modules/
-build/test/
-build/typedoc/
-scripts/
-src/
-test/
-CO*.md
-*-deployment.json
-ts*.json
-**/*.log
-**/*.txt
-`;
 
 const springDockerfile = `FROM openjdk:8
 

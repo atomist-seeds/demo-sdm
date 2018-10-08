@@ -19,10 +19,12 @@ import {
     GitHubRepoRef,
 } from "@atomist/automation-client";
 import { SoftwareDeliveryMachine } from "@atomist/sdm";
+import { isInLocalMode } from "@atomist/sdm-core";
 import {
     DefaultDockerImageNameCreator,
     DockerOptions,
 } from "@atomist/sdm-pack-docker";
+import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
 import {
     mavenBuilder,
     MavenProjectIdentifier,
@@ -166,5 +168,8 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
             springStyle: true,
             cloudNative: true,
         },
+        reviewListeners: isInLocalMode() ? [] : [
+            singleIssuePerCategoryManaging("sdm-pack-spring"),
+        ],
     }));
 }

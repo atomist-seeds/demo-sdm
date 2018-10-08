@@ -12,7 +12,7 @@ automate delivery of Atomist automatiom-client projects, like SDMs.
 To create a project from seed use `create spring` in a DM with the atomist bot. Go through the 
 creation and click the button to create a linked channel. 
 
-Notice that repo gets tagged automatically be the SDM.
+Notice that repo gets tagged automatically by the SDM.
 
 ### CodeTransform: Add Dockerfile
 

@@ -1,4 +1,4 @@
-# demo-sdm
+# @atomistplay/demo-sdm
 
 an Atomist demo software delivery machine
 

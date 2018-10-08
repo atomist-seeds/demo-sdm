@@ -3,7 +3,7 @@
 an Atomist demo software delivery machine
 
 Instance of an Atomist Software Delivery Machine that can be used to
-automate delivery of Atomist automatiom-client projects, like SDMs.
+automate delivery of Atomist automation-client projects, like SDMs.
 
 ## Demos
 

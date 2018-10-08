@@ -36,6 +36,7 @@ import {
     GoalProjectListenerEvent,
     GoalProjectListenerRegistration,
     ProgressLog,
+    PushTest,
     spawnAndWatch,
 } from "@atomist/sdm";
 import {
@@ -341,3 +342,11 @@ export function executeReleaseVersion(
         });
     };
 }
+
+export const IsReleaseCommit: PushTest = {
+    name: "IsReleaseCommit",
+    mapping: async pi => {
+        const regexp = /Version: increment after .* release/i;
+        return regexp.test(pi.push.after.message);
+    },
+};

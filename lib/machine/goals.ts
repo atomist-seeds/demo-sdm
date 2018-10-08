@@ -119,7 +119,8 @@ export const releaseVersion = new GoalWithFulfillment({
 
 // Just running review and autofix
 export const checkGoals = goals("checks")
-        .plan(autofix, version, codeInspection, fingerprint, pushImpact);
+        .plan(autofix, version, fingerprint, pushImpact)
+        .plan(codeInspection).after(autofix);
 
 // Just running the build and publish
 export const buildGoals = goals("build")

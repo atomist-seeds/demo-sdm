@@ -5,6 +5,39 @@ an Atomist demo software delivery machine
 Instance of an Atomist Software Delivery Machine that can be used to
 automate delivery of Atomist automatiom-client projects, like SDMs.
 
+## Demos
+
+### GeneratorCommand: Project Creation from seed
+
+To create a project from seed use `create spring` in a DM with the atomist bot. Go through the 
+creation and click the button to create a linked channel. 
+
+Notice that repo gets tagged automatically be the SDM.
+
+### CodeTransform: Add Dockerfile
+
+When joining the newly created and linked channel, you'll see a button called `Add Dockerfile`. 
+
+Clicking this button with run a `CodeTransform` and push to a new branch. When the build on this branch
+succeeds, a PR will be created. Once the goal set finishes successfully, the PR will get merged automatically. 
+
+This is a build-aware CodeTransform with an auto-merge PR. 
+
+### CodeInspection: Import java.io.File
+
+Edit any Java source in your repo and add an import for `import java.io.File;`. This will be flagged in the 
+Cloud Native code inspection. Notice the newly created issue for this violation.
+
+Once you remove the import again, the created issue gets closed and the body updated.
+
+### Autofix: Add @Autowired to a constructor
+
+Edit the Application class and add the `@ComponentScan` annotation to the class. Don't forget to also add the import
+to `import org.springframework.context.annotation.ComponentScan;`
+
+The autofix will remove the unnecessary annotation.
+ 
+
 ## What is a Software Delivery Machine?
 
 > A **software delivery machine** is a development process in a box.

@@ -36,6 +36,24 @@ Edit the Application class and add the `@ComponentScan` annotation to the class.
 to `import org.springframework.context.annotation.ComponentScan;`
 
 The autofix will remove the unnecessary annotation.
+
+### Deployment: Deploy to k8
+
+Once the Dockerfile PR is merged into master, the app will get deployed to our demo cluster. It will go straight to
+`testing` namespace. Click the link next to the goal to navigate to the running app. 
+
+Deployment to production can get triggered by starting the `deploy to production` goal. 
+
+On successful deploy to production, the version in the `pom.xml` will get incremented too.
+
+### Env-based Issue Labels
+
+Make sure to deploy your service at least once to the env, before running this demo.
+
+Create a new issue in the your repo; make a commit referencing the issue with `fixes #1` in your commit message.
+
+Let the build complete and see the app getting deployed to the `testing` namespace. Once it is running, a new label
+`env:gke-int-demo:testing` should be added to your issue.
  
 
 ## What is a Software Delivery Machine?

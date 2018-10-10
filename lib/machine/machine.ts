@@ -17,7 +17,6 @@
 import {
     githubTeamVoter,
     goalContributors,
-    ImmaterialGoals,
     SoftwareDeliveryMachine,
     SoftwareDeliveryMachineConfiguration,
     ToDefaultBranch,
@@ -43,7 +42,6 @@ import {
     deployGoals,
     dockerGoals,
 } from "./goals";
-import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";
 
 export function machine(
@@ -57,7 +55,6 @@ export function machine(
     );
 
     sdm.addGoalContributions(goalContributors(
-        whenPushSatisfies(IsReleaseCommit).setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
         whenPushSatisfies(IsMaven).setGoals(buildGoals),
         whenPushSatisfies(HasDockerfile).setGoals(dockerGoals),

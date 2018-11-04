@@ -1,6 +1,14 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Atomist <docker@atomist.com>"
+LABEL version="1.0.0"
+LABEL repository="http://github.com/atomist-seeds/demo-sdm"
+LABEL homepage="http://github.com/atomist-seeds/demo-sdm"
+
+LABEL com.github.actions.name="Demo SDM"
+LABEL com.github.actions.description="An Atomist SDM to deliver Spring services to a k8 cluster"
+LABEL com.github.actions.icon="globe"
+LABEL com.github.actions.color="green"
 
 RUN apt-get update && apt-get install -y \
         curl \

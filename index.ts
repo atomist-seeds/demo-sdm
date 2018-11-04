@@ -23,6 +23,7 @@ import {
     configureSdm,
     isGitHubAction,
 } from "@atomist/sdm-core";
+import * as path from "path";
 import { machine } from "./lib/machine/machine";
 
 const machineOptions: ConfigureOptions = {
@@ -60,5 +61,10 @@ export const configuration: Configuration = {
     ],
     cluster: {
         enabled: true,
+    },
+    sdm: {
+        spring: {
+            formatJar: path.resolve(path.join(".", "bin", "spring-format-0.1.0-SNAPSHOT-jar-with-dependencies.jar")),
+        },
     },
 };

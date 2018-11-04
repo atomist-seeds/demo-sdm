@@ -30,6 +30,7 @@ import {
     MavenProjectIdentifier,
     ReplaceReadmeTitle,
     SetAtomistTeamInApplicationYml,
+    springFormat,
     SpringProjectCreationParameterDefinitions,
     SpringProjectCreationParameters,
     springSupport,
@@ -70,6 +71,8 @@ import {
 } from "./release";
 
 export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
+
+    autofix.with(springFormat(sdm.configuration));
 
     build.with({
         ...MavenDefaultOptions,

@@ -24,7 +24,7 @@
     "@atomist/automation-client-ext-dashboard": "1.0.0-master.20181010130112",
     "@atomist/automation-client-ext-eventlog": "1.0.0-master.20181010130934",
     "@atomist/sdm": "1.0.0-master.20181101103750",
-    "@atomist/sdm-core": "1.0.0-github-actions.20181104015527",
+    "@atomist/sdm-core": "1.0.0-github-actions.20181104182224",
     "@atomist/sdm-pack-build": "1.0.0-master.20181101104727",
     "@atomist/sdm-pack-docker": "1.0.0-master.20181030173634",
     "@atomist/sdm-pack-issue": "1.0.0-master.20181102094209",

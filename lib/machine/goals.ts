@@ -58,7 +58,7 @@ export const publish = new GoalWithFulfillment({
     environment: IndependentOfEnvironment,
     orderedName: "2-publish",
     displayName: "publish",
-    workingDescription: "Publishing...",
+    workingDescription: "Publishing",
     completedDescription: "Published",
     failedDescription: "Published failed",
     isolated: true,
@@ -69,7 +69,7 @@ export const releaseArtifact = new GoalWithFulfillment({
     environment: ProductionEnvironment,
     orderedName: "3-release-artifact",
     displayName: "release artifact",
-    workingDescription: "Releasing artifact...",
+    workingDescription: "Releasing artifact",
     completedDescription: "Released artifact",
     failedDescription: "Release artifact failure",
     isolated: true,
@@ -80,7 +80,7 @@ export const releaseDocker = new GoalWithFulfillment({
     environment: ProductionEnvironment,
     orderedName: "3-release-docker",
     displayName: "release Docker image",
-    workingDescription: "Releasing Docker image...",
+    workingDescription: "Releasing Docker image",
     completedDescription: "Released Docker image",
     failedDescription: "Release Docker image failure",
     isolated: true,
@@ -132,7 +132,9 @@ export const dockerGoals = goals("docker build")
     .plan(dockerBuild).after(build);
 
 // Docker build and testing and production kubernetes deploy
-export const deployGoals = goals("deploy")
-    .plan(stagingDeployment).after(dockerBuild)
+export const stagingDeployGoals = goals("deploy")
+    .plan(stagingDeployment).after(dockerBuild);
+
+export const productionDeployGoals = goals("prod deploy")
     .plan(productionDeployment).after(stagingDeployment)
     .plan(releaseArtifact, releaseDocker, releaseDocs, releaseTag, releaseVersion).after(productionDeployment);

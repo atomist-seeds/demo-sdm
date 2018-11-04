@@ -79,7 +79,6 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
     version.withVersioner(MavenProjectVersioner);
 
     dockerBuild.with({
-        ...MavenDefaultOptions,
         imageNameCreator: DefaultDockerImageNameCreator,
         options: {
             ...sdm.configuration.sdm.docker.hub as DockerOptions,

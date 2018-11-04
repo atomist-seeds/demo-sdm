@@ -13,3 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import {
+    Configuration,
+    safeExec,
+} from "@atomist/automation-client";
+import {
+    ConfigureOptions,
+    configureSdm,
+    isGitHubAction,
+} from "@atomist/sdm-core";
+import { machine } from "./lib/machine/machine";
+
+const machineOptions: ConfigureOptions = {
+    requiredConfigurationValues: [
+        "sdm.docker.hub.registry",
+        "sdm.docker.hub.user",
+        "sdm.docker.hub.password",
+    ],
+};
+
+export const configuration: Configuration = {
+    postProcessors: [
+        async config => {
+            if (isGitHubAction()) {
+                config.environment = "gke-int-demo";
+                config.apiKey = "${ATOMIST_API_KEY}";
+                config.token = "${ATOMIST_GITHUB_TOKEN}";
+                config.sdm = {
+                    docker: {
+                        hub: {
+                            registry: "atomist",
+                            user: "${DOCKER_USER}",
+                            password: "${DOCKER_PASSWORD}",
+                        },
+                    },
+                };
+
+                await safeExec("git", ["config", "--global", "user.email", "\"bot@atomist.com\""]);
+                await safeExec("git", ["config", "--global", "user.name", "\"Atomist Bot\""]);
+
+            }
+            return config;
+        },
+        configureSdm(machine, machineOptions),
+    ],
+    cluster: {
+        enabled: true,
+    },
+};

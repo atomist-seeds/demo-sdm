@@ -15,13 +15,11 @@
  */
 
 import {
-    BranchCommit,
     buttonForCommand,
+    editModes,
     logger,
 } from "@atomist/automation-client";
 import {
-    AutoMergeMethod,
-    AutoMergeMode,
     ChannelLinkListener,
     CodeTransform,
     CodeTransformRegistration,
@@ -50,9 +48,9 @@ export const AddDockerfile: CodeTransformRegistration = {
     transformPresentation: () => ({
         message: `Add Dockerfile
 
-${BuildAwareMarker} ${AutoMergeMode.SuccessfulCheck} ${AutoMergeMethod.Merge}`,
+${BuildAwareMarker} ${editModes.AutoMergeMode.SuccessfulCheck} ${editModes.AutoMergeMethod.Merge}`,
         branch: `add-dockerfile-${Date.now()}`,
-    } as BranchCommit),
+    } as editModes.BranchCommit),
 };
 
 export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {

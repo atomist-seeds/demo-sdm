@@ -42,6 +42,7 @@ export const configuration: Configuration = {
                 config.apiKey = "${ATOMIST_API_KEY}";
                 config.token = "${ATOMIST_GITHUB_TOKEN}";
                 config.sdm = {
+                    ...config.sdm,
                     docker: {
                         hub: {
                             registry: "atomist",
@@ -65,6 +66,6 @@ export const configuration: Configuration = {
     sdm: {
         spring: {
             formatJar: path.resolve(path.join(".", "bin", "spring-format-0.1.0-SNAPSHOT-jar-with-dependencies.jar")),
-        },  
+        },
     },
 };

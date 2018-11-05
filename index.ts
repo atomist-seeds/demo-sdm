@@ -70,6 +70,6 @@ export const configuration: Configuration = {
         },
         build: {
             tag: false,
-        }
+        },
     },
 };

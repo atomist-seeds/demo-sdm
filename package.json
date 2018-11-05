@@ -27,7 +27,7 @@
     "@atomist/sdm-core": "1.0.0-github-actions.20181104182224",
     "@atomist/sdm-pack-build": "1.0.0-master.20181101104727",
     "@atomist/sdm-pack-docker": "1.0.0-master.20181030173634",
-    "@atomist/sdm-pack-issue": "1.0.0-master.20181102094209",
+    "@atomist/sdm-pack-issue": "1.0.0-master.20181105092021",
     "@atomist/sdm-pack-k8": "1.0.0-master.20181030180704",
     "@atomist/sdm-pack-node": "1.0.0-master.20181101104452",
     "@atomist/sdm-pack-spring": "1.0.0-master.20181103044642",

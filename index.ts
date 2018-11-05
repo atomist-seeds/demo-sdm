@@ -68,5 +68,8 @@ export const configuration: Configuration = {
         spring: {
             formatJar: path.join(appRoot.path, "bin", "spring-format-0.1.0-SNAPSHOT-jar-with-dependencies.jar"),
         },
+        build: {
+            tag: false,
+        }
     },
 };

@@ -19,6 +19,7 @@
 import {
     AutoCodeInspection,
     Autofix,
+    Cancel,
     Fingerprint,
     goals,
     GoalWithFulfillment,
@@ -115,12 +116,14 @@ export const releaseVersion = new GoalWithFulfillment({
     failedDescription: "Incrementing version failure",
 });
 
+export const cancel = new Cancel({ goals: [autofix, build, dockerBuild, publish] });
+
 // GOALSET Definition
 
 // Just running review and autofix
 export const checkGoals = goals("checks")
-        .plan(autofix, version, fingerprint, pushImpact)
-        .plan(codeInspection).after(autofix);
+    .plan(cancel, autofix, version, fingerprint, pushImpact)
+    .plan(codeInspection).after(autofix);
 
 // Just running the build and publish
 export const buildGoals = goals("build")

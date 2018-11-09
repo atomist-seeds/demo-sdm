@@ -23,13 +23,13 @@ import {
     StagingEnvironment,
 } from "@atomist/sdm";
 import {
-    Deployment,
-    KubernetesDeploymentOptions,
+    k8,
+    KubernetesApplicationOptions,
 } from "@atomist/sdm-pack-k8";
 import * as _ from "lodash";
 
 export function kubernetesDeploymentData(sdm: SoftwareDeliveryMachine) {
-    return async (goal: SdmGoalEvent, context: RepoContext): Promise<KubernetesDeploymentOptions> => {
+    return async (goal: SdmGoalEvent, context: RepoContext): Promise<KubernetesApplicationOptions> => {
         return sdm.configuration.sdm.projectLoader.doWithProject({
             credentials: context.credentials,
             id: context.id,
@@ -50,7 +50,7 @@ export function kubernetesDeploymentData(sdm: SoftwareDeliveryMachine) {
 }
 
 export function kubernetesDeploymentSpecCreator(sdm: SoftwareDeliveryMachine) {
-    return async (deploymentSpec: Deployment, goal: SdmGoalEvent, context: RepoContext): Promise<Deployment> => {
+    return async (deploymentSpec: k8.Deployment, goal: SdmGoalEvent, context: RepoContext): Promise<k8.Deployment> => {
         const deploymentSpecPatch = {
             spec: {
                 template: {
@@ -72,7 +72,7 @@ export function kubernetesDeploymentSpecCreator(sdm: SoftwareDeliveryMachine) {
     };
 }
 
-export function ingressFromGoal(repo: string, ns: string): Partial<KubernetesDeploymentOptions> {
+export function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplicationOptions> {
     const path = `/${repo}`;
     const host = `play.atomist.${(ns === "testing") ? "io" : "com"}`;
     const protocol = "https";

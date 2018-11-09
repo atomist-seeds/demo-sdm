@@ -1,6 +1,6 @@
 {
   "name": "@atomist/demo-sdm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "an Atomist SDM to deliver automation client projects",
   "author": "Atomist, Inc.",
   "license": "Apache-2.0",
@@ -20,24 +20,24 @@
     "url": "https://github.com/atomist/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "1.0.0-master.20181105110621",
-    "@atomist/automation-client-ext-dashboard": "1.0.0-master.20181010130112",
-    "@atomist/automation-client-ext-eventlog": "1.0.0-master.20181010130934",
-    "@atomist/sdm": "1.0.0-master.20181101103750",
-    "@atomist/sdm-core": "1.0.0-github-actions.20181105152637",
-    "@atomist/sdm-pack-build": "1.0.0-master.20181101104727",
-    "@atomist/sdm-pack-docker": "1.0.0-master.20181030173634",
-    "@atomist/sdm-pack-issue": "1.0.0-master.20181105092021",
-    "@atomist/sdm-pack-k8": "1.0.0-master.20181030180704",
-    "@atomist/sdm-pack-node": "1.0.0-master.20181101104452",
-    "@atomist/sdm-pack-spring": "1.0.0-master.20181103044642",
-    "@atomist/slack-messages": "1.0.0",
+    "@atomist/automation-client": "^1.0.1",
+    "@atomist/automation-client-ext-dashboard": "^1.0.1",
+    "@atomist/automation-client-ext-eventlog": "^1.0.1",
+    "@atomist/sdm": "1.0.2-cancel-goal.20181109233711",
+    "@atomist/sdm-core": "1.0.3-cancel-goal.20181109231617",
+    "@atomist/sdm-pack-build": "^1.0.1",
+    "@atomist/sdm-pack-docker": "^1.0.1",
+    "@atomist/sdm-pack-issue": "^1.0.1",
+    "@atomist/sdm-pack-k8": "^1.0.1",
+    "@atomist/sdm-pack-node": "^1.0.1",
+    "@atomist/sdm-pack-spring": "^1.0.1",
+    "@atomist/slack-messages": "^1.0.1",
     "dateformat": "^3.0.3",
     "fs-extra": "^6.0.1",
     "lodash": "^4.17.10"
   },
   "devDependencies": {
-    "@atomist/sdm-local": "1.0.0-master.20181101103545",
+    "@atomist/sdm-local": "^1.0.2",
     "@types/fs-extra": "^5.0.2",
     "@types/lodash": "^4.14.116",
     "@types/mocha": "^5.2.5",
@@ -55,8 +55,8 @@
     "supervisor": "^0.12.0",
     "ts-node": "7.0.1",
     "tslint": "^5.11.0",
-    "typedoc": "^0.11.1",
-    "typescript": "^2.9.2"
+    "typedoc": "^0.13.0",
+    "typescript": "^3.1.6"
   },
   "directories": {
     "test": "test"

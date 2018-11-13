@@ -92,4 +92,3 @@ export const configuration: Configuration = {
     },
     metadataProcessor: new LocalSecretRewritingMetadataProcessor(),
 };
-

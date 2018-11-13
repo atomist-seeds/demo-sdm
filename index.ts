@@ -19,6 +19,11 @@ import {
     safeExec,
 } from "@atomist/automation-client";
 import {
+    AutomationMetadata,
+    CommandHandlerMetadata,
+} from "@atomist/automation-client/lib/metadata/automationMetadata";
+import { AutomationMetadataProcessor } from "@atomist/automation-client/lib/spi/env/MetadataProcessor";
+import {
     ConfigureOptions,
     configureSdm,
     isGitHubAction,
@@ -34,6 +39,22 @@ const machineOptions: ConfigureOptions = {
         "sdm.docker.hub.password",
     ],
 };
+
+/**
+ * AutomationMetadataProcessor that rewrites all requested secrets to use values instead
+ */
+export class LocalSecretRewritingMetadataProcessor implements AutomationMetadataProcessor {
+
+    public process<T extends AutomationMetadata>(metadata: T): T {
+        const cmd = metadata as CommandHandlerMetadata;
+        cmd.secrets.filter(s => s.uri.startsWith("github://"))
+            .forEach(s => {
+                cmd.values.push({ name: s.name, path: "token", required: true, type: "string" });
+            });
+        cmd.secrets = cmd.secrets.filter(s => !s.uri.startsWith("github://"));
+        return metadata;
+    }
+}
 
 export const configuration: Configuration = {
     postProcessors: [
@@ -69,4 +90,6 @@ export const configuration: Configuration = {
             tag: false,
         },
     },
+    metadataProcessor: new LocalSecretRewritingMetadataProcessor(),
 };
+

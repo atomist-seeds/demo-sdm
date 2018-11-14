@@ -25,9 +25,14 @@ import {
     DockerOptions,
 } from "@atomist/sdm-pack-docker";
 import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
+import { applySimpleDeployment } from "@atomist/sdm-pack-pulumi";
 import {
     mavenBuilder,
+    MavenDefaultOptions,
     MavenProjectIdentifier,
+    MavenProjectVersioner,
+    MvnPackage,
+    MvnVersion,
     ReplaceReadmeTitle,
     SetAtomistTeamInApplicationYml,
     springFormat,
@@ -53,14 +58,6 @@ import {
     version,
 } from "./goals";
 import {
-    kubernetesDeploymentData,
-    kubernetesDeploymentSpecCreator,
-} from "./k8Support";
-import {
-    MavenDefaultOptions,
-    MavenProjectVersioner,
-    MvnPackage,
-    MvnVersion,
     noOpImplementation,
 } from "./maven";
 import {
@@ -86,6 +83,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
         options: {
             ...sdm.configuration.sdm.docker.hub as DockerOptions,
             dockerfileFinder: async () => "Dockerfile",
+            push: true,
         },
     })
         .withProjectListener(MvnVersion)
@@ -99,14 +97,16 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
 
     stagingDeployment.with({
         name: "staging-deployment",
-        deploymentData: kubernetesDeploymentData(sdm),
-        deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
+        token: sdm.configuration.sdm.pulumi.token,
+        stack: goal => `${goal.repo.name}-testing`,
+        transform: applySimpleDeployment("testing"),
     });
 
     productionDeployment.with({
         name: "production-deployment",
-        deploymentData: kubernetesDeploymentData(sdm),
-        deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
+        token: sdm.configuration.sdm.pulumi.token,
+        stack: goal => `${goal.repo.name}-production`,
+        transform: applySimpleDeployment("production"),
     });
 
     releaseArtifact.with({

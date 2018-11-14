@@ -26,6 +26,7 @@ import {
     IndependentOfEnvironment,
     ProductionEnvironment,
     PushImpact,
+    StagingEnvironment,
 } from "@atomist/sdm";
 import {
     Tag,
@@ -33,7 +34,7 @@ import {
 } from "@atomist/sdm-core";
 import { Build } from "@atomist/sdm-pack-build";
 import { DockerBuild } from "@atomist/sdm-pack-docker";
-import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
+import { PulumiUp } from "@atomist/sdm-pack-pulumi/lib/PulumiUp";
 
 export const autofix = new Autofix();
 export const version = new Version();
@@ -46,11 +47,11 @@ export const tag = new Tag();
 
 export const dockerBuild = new DockerBuild();
 
-export const stagingDeployment = new KubernetesDeploy({
-    environment: "testing",
+export const stagingDeployment = new PulumiUp({
+    environment: StagingEnvironment,
 });
-export const productionDeployment = new KubernetesDeploy({
-    environment: "production",
+export const productionDeployment = new PulumiUp({
+    environment: ProductionEnvironment,
     preApproval: true,
 });
 

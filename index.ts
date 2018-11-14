@@ -32,6 +32,7 @@ const machineOptions: ConfigureOptions = {
         "sdm.docker.hub.registry",
         "sdm.docker.hub.user",
         "sdm.docker.hub.password",
+        "sdm.pulumi.token",
     ],
 };
 

@@ -15,7 +15,6 @@
  */
 
 import {
-    asSpawnCommand,
     GitHubRepoRef,
 } from "@atomist/automation-client";
 import { SoftwareDeliveryMachine } from "@atomist/sdm";
@@ -29,7 +28,6 @@ import { applySimpleDeployment } from "@atomist/sdm-pack-pulumi";
 import {
     mavenBuilder,
     MavenDefaultOptions,
-    MavenProjectIdentifier,
     MavenProjectVersioner,
     MvnPackage,
     MvnVersion,
@@ -46,26 +44,10 @@ import {
     autofix,
     build,
     codeInspection,
+    deployment,
     dockerBuild,
-    productionDeployment,
-    publish,
-    releaseArtifact,
-    releaseDocker,
-    releaseDocs,
-    releaseTag,
-    releaseVersion,
-    stagingDeployment,
     version,
 } from "./goals";
-import {
-    noOpImplementation,
-} from "./maven";
-import {
-    DockerPull,
-    executeReleaseDocker,
-    executeReleaseTag,
-    executeReleaseVersion,
-} from "./release";
 
 export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
 
@@ -89,60 +71,11 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
         .withProjectListener(MvnVersion)
         .withProjectListener(MvnPackage);
 
-    publish.with({
-        ...MavenDefaultOptions,
-        name: "mvn-publish",
-        goalExecutor: noOpImplementation("Publish"),
-    });
-
-    stagingDeployment.with({
+    deployment.with({
         name: "staging-deployment",
         token: sdm.configuration.sdm.pulumi.token,
         stack: goal => `${goal.repo.name}-testing`,
         transform: applySimpleDeployment("testing"),
-    });
-
-    productionDeployment.with({
-        name: "production-deployment",
-        token: sdm.configuration.sdm.pulumi.token,
-        stack: goal => `${goal.repo.name}-production`,
-        transform: applySimpleDeployment("production"),
-    });
-
-    releaseArtifact.with({
-        ...MavenDefaultOptions,
-        name: "mvn-release-artifact",
-        goalExecutor: noOpImplementation("ReleaseArtifact"),
-    });
-
-    releaseDocker.with({
-        ...MavenDefaultOptions,
-        name: "docker-release",
-        goalExecutor: executeReleaseDocker(
-            {
-                ...sdm.configuration.sdm.docker.hub as DockerOptions,
-            }),
-    })
-        .withProjectListener(DockerPull);
-
-    releaseTag.with({
-        ...MavenDefaultOptions,
-        name: "release-tag",
-        goalExecutor: executeReleaseTag(),
-    });
-
-    releaseDocs.with({
-        ...MavenDefaultOptions,
-        name: "release-docs",
-        goalExecutor: noOpImplementation("ReleaseDocs"),
-    });
-
-    releaseVersion.with({
-        ...MavenDefaultOptions,
-        name: "mvn-release-version",
-        goalExecutor: executeReleaseVersion(MavenProjectIdentifier, asSpawnCommand("mvn build-helper:parse-version versions:set -DnewVersion=" +
-            "\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}" +
-            "-\${parsedVersion.qualifier} versions:commit")),
     });
 
     sdm.addGeneratorCommand<SpringProjectCreationParameters>({

@@ -28,11 +28,11 @@ import {
     createSoftwareDeliveryMachine,
     gitHubGoalStatus,
     goalState,
-    IsGitHubAction,
 } from "@atomist/sdm-core";
 import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
 import { IssueSupport } from "@atomist/sdm-pack-issue";
+import { kubernetesSupport } from "@atomist/sdm-pack-k8";
 import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
@@ -43,11 +43,9 @@ import {
     build,
     buildGoals,
     checkGoals,
+    deployGoals,
     dockerGoals,
-    productionDeployGoals,
-    stagingDeployGoals,
 } from "./goals";
-import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";
 
 export function machine(
@@ -66,14 +64,11 @@ export function machine(
             files: ["Dockerfile"],
             directories: [".atomist", ".github"],
         }))).setGoals(ImmaterialGoals.andLock()),
-        whenPushSatisfies(IsReleaseCommit).setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
         whenPushSatisfies(IsMaven).setGoals(buildGoals),
         whenPushSatisfies(IsMaven, HasDockerfile).setGoals(dockerGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile).setGoals(stagingDeployGoals),
-        whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile, not(IsGitHubAction)).setGoals(productionDeployGoals),
+            ToDefaultBranch, HasDockerfile).setGoals(deployGoals),
     );
 
     sdm.addCodeTransformCommand(AddDockerfile);
@@ -94,7 +89,8 @@ export function machine(
         }),
         IssueSupport,
         goalState(),
-        gitHubGoalStatus());
+        gitHubGoalStatus(),
+        kubernetesSupport());
 
     return sdm;
 }

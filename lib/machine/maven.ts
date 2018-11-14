@@ -31,4 +31,3 @@ export function noOpImplementation(action: string): ExecuteGoal {
         return Promise.resolve({ code: 0, message });
     };
 }
-

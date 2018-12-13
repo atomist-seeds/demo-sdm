@@ -38,10 +38,7 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
 import {
-    autofixGoal,
-    buildGoal,
     dockerBuild,
-    inspectGoal,
     productionDeployment,
     publish,
     releaseArtifact,
@@ -69,12 +66,11 @@ import {
     executeReleaseTag,
     executeReleaseVersion,
 } from "./release";
+import {CommonGoals} from "../convention/phases";
 
-export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
-
-    autofixGoal.with(springFormat(sdm.configuration));
-
-    buildGoal.with({
+export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: CommonGoals) {
+    commonGoals.autofixGoal.with(springFormat(sdm.configuration));
+    commonGoals.buildGoal.with({
         ...MavenDefaultOptions,
         builder: mavenBuilder(),
     });
@@ -160,8 +156,8 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
 
     sdm.addChannelLinkListener(SuggestAddingDockerfile);
     sdm.addExtensionPacks(springSupport({
-        inspectGoal,
-        autofixGoal,
+        inspectGoal: commonGoals.inspectGoal,
+        autofixGoal: commonGoals.autofixGoal,
         review: {
             cloudNative: true,
             springStyle: true,

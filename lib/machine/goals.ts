@@ -36,13 +36,13 @@ import { DockerBuild } from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
 import {CommonGoals, Phases} from "../convention/phases";
 
-export const autofixGoal = new Autofix();
+const autofixGoal = new Autofix();
 export const version = new Version();
-export const inspectGoal = new AutoCodeInspection();
-export const fingerprintGoal = new Fingerprint();
-export const pushImpactGoal = new PushImpact();
+const inspectGoal = new AutoCodeInspection();
+const fingerprintGoal = new Fingerprint();
+const pushImpactGoal = new PushImpact();
 
-export const buildGoal = new Build();
+const buildGoal = new Build();
 export const tag = new Tag();
 
 export const dockerBuild = new DockerBuild();
@@ -130,12 +130,12 @@ export const OurGoals: CommonGoals = {
 // GOALSET Definition
 
 // Just running review and autofix
-export const checkGoals = goals("checks")
+const checkGoals = goals("checks")
     .plan(cancel, autofixGoal, version, fingerprintGoal, pushImpactGoal)
     .plan(inspectGoal).after(autofixGoal);
 
 // Just running the build and publish
-export const buildGoals = goals("buildGoal")
+const buildGoals = goals("buildGoal")
     .plan(buildGoal).after(autofixGoal)
     .plan(publish).after(buildGoal);
 

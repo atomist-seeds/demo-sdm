@@ -40,10 +40,7 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
-    buildGoal,
-    buildGoals,
-    checkGoals,
-    dockerGoals,
+    dockerGoals, OurGoals, OurPhases,
     productionDeployGoals,
     stagingDeployGoals,
 } from "./goals";
@@ -67,8 +64,8 @@ export function machine(
             directories: [".atomist", ".github"],
         }))).setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsReleaseCommit).setGoals(ImmaterialGoals.andLock()),
-        whenPushSatisfies(IsMaven).setGoals(checkGoals),
-        whenPushSatisfies(IsMaven).setGoals(buildGoals),
+        whenPushSatisfies(IsMaven).setGoals(OurPhases.checkGoals),
+        whenPushSatisfies(IsMaven).setGoals(OurPhases.buildGoals),
         whenPushSatisfies(IsMaven, HasDockerfile).setGoals(dockerGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
             ToDefaultBranch, HasDockerfile).setGoals(stagingDeployGoals),
@@ -78,12 +75,12 @@ export function machine(
 
     sdm.addCodeTransformCommand(AddDockerfile);
 
-    addSpringSupport(sdm);
+    addSpringSupport(sdm, OurGoals);
 
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
     sdm.addExtensionPacks(
         buildAwareCodeTransforms({
-            buildGoal: buildGoal,
+            buildGoal: OurGoals.buildGoal,
             issueCreation: {
                 issueRouter: {
                     raiseIssue: async () => {

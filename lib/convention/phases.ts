@@ -9,6 +9,9 @@ export interface CommonGoals extends WellKnownGoals {
     buildGoal: Build;
 }
 
+/**
+ * Well known Phases.
+ */
 export interface Phases {
 
     checkPhase: Goals;

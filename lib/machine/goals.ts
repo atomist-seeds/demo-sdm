@@ -35,11 +35,11 @@ import { Build } from "@atomist/sdm-pack-build";
 import { DockerBuild } from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
 
-export const autofix = new Autofix();
+export const autofixGoal = new Autofix();
 export const version = new Version();
-export const codeInspection = new AutoCodeInspection();
-export const fingerprint = new Fingerprint();
-export const pushImpact = new PushImpact();
+export const inspectGoal = new AutoCodeInspection();
+export const fingerprintGoal = new Fingerprint();
+export const pushImpactGoal = new PushImpact();
 
 export const build = new Build();
 export const tag = new Tag();
@@ -116,18 +116,18 @@ export const releaseVersion = new GoalWithFulfillment({
     failedDescription: "Incrementing version failure",
 });
 
-export const cancel = new Cancel({ goals: [autofix, build, dockerBuild, publish] });
+export const cancel = new Cancel({ goals: [autofixGoal, build, dockerBuild, publish] });
 
 // GOALSET Definition
 
 // Just running review and autofix
 export const checkGoals = goals("checks")
-    .plan(cancel, autofix, version, fingerprint, pushImpact)
-    .plan(codeInspection).after(autofix);
+    .plan(cancel, autofixGoal, version, fingerprintGoal, pushImpactGoal)
+    .plan(inspectGoal).after(autofixGoal);
 
 // Just running the build and publish
 export const buildGoals = goals("build")
-    .plan(build).after(autofix)
+    .plan(build).after(autofixGoal)
     .plan(publish).after(build);
 
 // Build including docker build

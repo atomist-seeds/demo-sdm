@@ -32,41 +32,42 @@ import {
     Version,
 } from "@atomist/sdm-core";
 import { Build } from "@atomist/sdm-pack-build";
-import { DockerBuild } from "@atomist/sdm-pack-docker";
+import {DockerBuild, DockerBuildRegistration} from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
-import {CommonGoals, Phases} from "../convention/phases";
+import {CommonGoals, ContainerBuildGoals, ContainerPhases, DeployGoals, DeployPhases, Phases} from "../convention/phases";
+import {KubernetesDeployRegistration} from "@atomist/sdm-pack-k8/lib/support/KubernetesDeploy";
 
 const autofixGoal = new Autofix();
-export const version = new Version();
+export const versionGoal = new Version();
 const inspectGoal = new AutoCodeInspection();
 const fingerprintGoal = new Fingerprint();
 const pushImpactGoal = new PushImpact();
 
 const buildGoal = new Build();
-export const tag = new Tag();
+export const tagGoal = new Tag();
 
-export const dockerBuild = new DockerBuild();
+const containerBuildGoal = new DockerBuild();
 
-export const stagingDeployment = new KubernetesDeploy({
+const stagingDeployGoal = new KubernetesDeploy({
     environment: "testing",
 });
-export const productionDeployment = new KubernetesDeploy({
+const productionDeployGoal = new KubernetesDeploy({
     environment: "production",
     preApproval: true,
 });
 
-export const publish = new GoalWithFulfillment({
+export const publishGoal = new GoalWithFulfillment({
     uniqueName: "Publish",
     environment: IndependentOfEnvironment,
     orderedName: "2-publish",
-    displayName: "publish",
+    displayName: "publishGoal",
     workingDescription: "Publishing",
     completedDescription: "Published",
     failedDescription: "Published failed",
     isolated: true,
 });
 
-export const releaseArtifact = new GoalWithFulfillment({
+export const releaseArtifactGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseArtifact",
     environment: ProductionEnvironment,
     orderedName: "3-release-artifact",
@@ -77,7 +78,7 @@ export const releaseArtifact = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseDocker = new GoalWithFulfillment({
+export const releaseDockerGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseDocker",
     environment: ProductionEnvironment,
     orderedName: "3-release-docker",
@@ -88,16 +89,16 @@ export const releaseDocker = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseTag = new GoalWithFulfillment({
+export const releaseTagGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseTag",
     environment: ProductionEnvironment,
-    orderedName: "3-release-tag",
-    displayName: "create release tag",
-    completedDescription: "Created release tag",
-    failedDescription: "Creating release tag failure",
+    orderedName: "3-release-tagGoal",
+    displayName: "create release tagGoal",
+    completedDescription: "Created release tagGoal",
+    failedDescription: "Creating release tagGoal failure",
 });
 
-export const releaseDocs = new GoalWithFulfillment({
+export const releaseDocsGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseDocs",
     environment: ProductionEnvironment,
     orderedName: "3-release-docs",
@@ -108,7 +109,7 @@ export const releaseDocs = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseVersion = new GoalWithFulfillment({
+export const releaseVersionGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseVersion",
     environment: ProductionEnvironment,
     orderedName: "3-release-version",
@@ -117,41 +118,50 @@ export const releaseVersion = new GoalWithFulfillment({
     failedDescription: "Incrementing version failure",
 });
 
-export const cancel = new Cancel({ goals: [autofixGoal, buildGoal, dockerBuild, publish] });
+export const cancelGoal = new Cancel({ goals: [autofixGoal, buildGoal, containerBuildGoal, publishGoal] });
 
-export const OurGoals: CommonGoals = {
+export type DemoSdmGoals = CommonGoals & ContainerBuildGoals<DockerBuildRegistration> & DeployGoals<KubernetesDeployRegistration>;
+
+export const ourGoals: DemoSdmGoals = {
     inspectGoal,
     fingerprintGoal,
     autofixGoal,
     pushImpactGoal,
     buildGoal,
+    containerBuildGoal,
+    stagingDeployGoal,
+    productionDeployGoal,
 };
-
-// GOALSET Definition
 
 // Just running review and autofix
 const checkGoals = goals("checks")
-    .plan(cancel, autofixGoal, version, fingerprintGoal, pushImpactGoal)
+    .plan(cancelGoal, autofixGoal, versionGoal, fingerprintGoal, pushImpactGoal)
     .plan(inspectGoal).after(autofixGoal);
 
 // Just running the build and publish
 const buildGoals = goals("buildGoal")
     .plan(buildGoal).after(autofixGoal)
-    .plan(publish).after(buildGoal);
+    .plan(publishGoal).after(buildGoal);
 
 // Build including docker build
-export const dockerGoals = goals("docker build")
-    .plan(dockerBuild).after(buildGoal);
+const containerBuildGoals = goals("docker build")
+    .plan(containerBuildGoal).after(buildGoal);
 
 // Docker build and testing and production kubernetes deploy
-export const stagingDeployGoals = goals("deploy")
-    .plan(stagingDeployment).after(dockerBuild);
+const stagingDeployGoals = goals("deploy")
+    .plan(stagingDeployGoal).after(containerBuildGoal);
 
-export const productionDeployGoals = goals("prod deploy")
-    .plan(productionDeployment).after(stagingDeployment)
-    .plan(releaseArtifact, releaseDocker, releaseDocs, releaseTag, releaseVersion).after(productionDeployment);
+const productionDeployGoals = goals("prod deploy")
+    .plan(productionDeployGoal).after(stagingDeployGoal)
+    .plan(releaseArtifactGoal, releaseDockerGoal, releaseDocsGoal, releaseTagGoal, releaseVersionGoal)
+    .after(productionDeployGoal);
 
-export const OurPhases: Phases = {
+export type DemoSdmPhases = Phases & ContainerPhases & DeployPhases;
+
+export const ourPhases: DemoSdmPhases = {
     checkGoals,
     buildGoals,
+    containerBuildGoals,
+    stagingDeployGoals,
+    productionDeployGoals,
 };

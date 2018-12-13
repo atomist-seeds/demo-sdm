@@ -40,15 +40,14 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
-    ourGoals, ourPhases,
-} from "./goals";
+    sdmGoals, sdmPhases,
+} from "./goalImplementations";
 import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";
 
 export function machine(
     configuration: SoftwareDeliveryMachineConfiguration,
 ): SoftwareDeliveryMachine {
-
     const sdm = createSoftwareDeliveryMachine({
             name: "Kubernetes Demo Software Delivery Machine",
             configuration,
@@ -62,23 +61,23 @@ export function machine(
             directories: [".atomist", ".github"],
         }))).setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsReleaseCommit).setGoals(ImmaterialGoals.andLock()),
-        whenPushSatisfies(IsMaven).setGoals(ourPhases.checkGoals),
-        whenPushSatisfies(IsMaven).setGoals(ourPhases.buildGoals),
-        whenPushSatisfies(IsMaven, HasDockerfile).setGoals(ourPhases.containerBuildGoals),
+        whenPushSatisfies(IsMaven).setGoals(sdmPhases.checkGoals),
+        whenPushSatisfies(IsMaven).setGoals(sdmPhases.buildGoals),
+        whenPushSatisfies(IsMaven, HasDockerfile).setGoals(sdmPhases.containerBuildGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile).setGoals(ourPhases.stagingDeployGoals),
+            ToDefaultBranch, HasDockerfile).setGoals(sdmPhases.stagingDeployGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile, not(IsGitHubAction)).setGoals(ourPhases.productionDeployGoals),
+            ToDefaultBranch, HasDockerfile, not(IsGitHubAction)).setGoals(sdmPhases.productionDeployGoals),
     );
 
     sdm.addCodeTransformCommand(AddDockerfile);
 
-    addSpringSupport(sdm, ourGoals);
+    addSpringSupport(sdm, sdmGoals);
 
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
     sdm.addExtensionPacks(
         buildAwareCodeTransforms({
-            buildGoal: ourGoals.buildGoal,
+            buildGoal: sdmGoals.buildGoal,
             issueCreation: {
                 issueRouter: {
                     raiseIssue: async () => {

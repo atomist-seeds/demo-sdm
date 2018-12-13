@@ -37,6 +37,7 @@ import {
     TransformSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
+import {DemoSdmGoals} from "./goalsAndPhases";
 import {
     kubernetesDeploymentData,
     kubernetesDeploymentSpecCreator,
@@ -54,18 +55,17 @@ import {
     executeReleaseTag,
     executeReleaseVersion,
 } from "./release";
-import {DemoSdmGoals} from "./goalsAndPhases";
 
-export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: DemoSdmGoals) {
-    commonGoals.autofixGoal.with(springFormat(sdm.configuration));
-    commonGoals.buildGoal.with({
+export function addSpringSupport(sdm: SoftwareDeliveryMachine, sdmGoals: DemoSdmGoals) {
+    sdmGoals.autofixGoal.with(springFormat(sdm.configuration));
+    sdmGoals.buildGoal.with({
         ...MavenDefaultOptions,
         builder: mavenBuilder(),
     });
 
-    commonGoals.versionGoal.withVersioner(MavenProjectVersioner);
+    sdmGoals.versionGoal.withVersioner(MavenProjectVersioner);
 
-    commonGoals.containerBuildGoal.with({
+    sdmGoals.containerBuildGoal.with({
         imageNameCreator: DefaultDockerImageNameCreator,
         options: {
             ...sdm.configuration.sdm.docker.hub as DockerOptions,
@@ -75,31 +75,31 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
         .withProjectListener(MvnVersion)
         .withProjectListener(MvnPackage);
 
-    commonGoals.publishGoal.with({
+    sdmGoals.publishGoal.with({
         ...MavenDefaultOptions,
         name: "mvn-publish",
         goalExecutor: noOpImplementation("Publish"),
     });
 
-    commonGoals.stagingDeployGoal.with({
+    sdmGoals.stagingDeployGoal.with({
         name: "staging-deployment",
         deploymentData: kubernetesDeploymentData(sdm),
         deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
     });
 
-    commonGoals.productionDeployGoal.with({
+    sdmGoals.productionDeployGoal.with({
         name: "production-deployment",
         deploymentData: kubernetesDeploymentData(sdm),
         deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
     });
 
-    commonGoals.releaseArtifactGoal.with({
+    sdmGoals.releaseArtifactGoal.with({
         ...MavenDefaultOptions,
         name: "mvn-release-artifact",
         goalExecutor: noOpImplementation("ReleaseArtifact"),
     });
 
-    commonGoals.releaseDockerGoal.with({
+    sdmGoals.releaseDockerGoal.with({
         ...MavenDefaultOptions,
         name: "docker-release",
         goalExecutor: executeReleaseDocker(
@@ -109,19 +109,19 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
     })
         .withProjectListener(DockerPull);
 
-    commonGoals.releaseTagGoal.with({
+    sdmGoals.releaseTagGoal.with({
         ...MavenDefaultOptions,
         name: "release-tag",
         goalExecutor: executeReleaseTag(),
     });
 
-    commonGoals.releaseDocsGoal.with({
+    sdmGoals.releaseDocsGoal.with({
         ...MavenDefaultOptions,
         name: "release-docs",
         goalExecutor: noOpImplementation("ReleaseDocs"),
     });
 
-    commonGoals.releaseVersionGoal.with({
+    sdmGoals.releaseVersionGoal.with({
         ...MavenDefaultOptions,
         name: "mvn-release-version",
         goalExecutor: executeReleaseVersion(MavenProjectIdentifier, asSpawnCommand("mvn build-helper:parse-version versions:set -DnewVersion=" +
@@ -144,8 +144,8 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
 
     sdm.addChannelLinkListener(SuggestAddingDockerfile);
     sdm.addExtensionPacks(springSupport({
-        inspectGoal: commonGoals.inspectGoal,
-        autofixGoal: commonGoals.autofixGoal,
+        inspectGoal: sdmGoals.inspectGoal,
+        autofixGoal: sdmGoals.autofixGoal,
         review: {
             cloudNative: true,
             springStyle: true,

@@ -113,7 +113,7 @@ const releaseVersionGoal = new GoalWithFulfillment({
 
 const cancelGoal = new Cancel({ goals: [autofixGoal, buildGoal, containerBuildGoal, publishGoal] });
 
-export const ourGoals: DemoSdmGoals = {
+export const sdmGoals: DemoSdmGoals = {
     inspectGoal,
     fingerprintGoal,
     autofixGoal,
@@ -154,7 +154,7 @@ const productionDeployGoals = goals("prod deploy")
     .plan(releaseArtifactGoal, releaseDockerGoal, releaseDocsGoal, releaseTagGoal, releaseVersionGoal)
     .after(productionDeployGoal);
 
-export const ourPhases: DemoSdmPhases = {
+export const sdmPhases: DemoSdmPhases = {
     checkGoals,
     buildGoals,
     containerBuildGoals,

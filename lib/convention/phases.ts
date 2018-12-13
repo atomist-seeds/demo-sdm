@@ -1,12 +1,9 @@
-import {FulfillableGoalWithRegistrations, Goals, WellKnownGoals} from "@atomist/sdm";
+import {FulfillableGoalWithRegistrations, Goals} from "@atomist/sdm";
 import {Build} from "@atomist/sdm-pack-build";
 
 // TODO this file will be generic and should eventually be pulled out
 
-/**
- * Extend WellKnownGoals to structure common goals
- */
-export interface CommonGoals extends WellKnownGoals {
+export interface BuildGoals {
 
     buildGoal: Build;
 }
@@ -26,22 +23,26 @@ export interface DeployGoals<T> {
 /**
  * Well known Phases.
  */
-export interface Phases {
+export interface CheckPhase {
 
     checkGoals: Goals;
+
+}
+
+export interface BuildPhase {
 
     buildGoals: Goals;
 
 }
 
-export interface DeployPhases {
+export interface DeployPhase {
 
     stagingDeployGoals: Goals;
 
     productionDeployGoals: Goals;
 }
 
-export interface ContainerPhases {
+export interface ContainerPhase {
 
     containerBuildGoals: Goals;
 }

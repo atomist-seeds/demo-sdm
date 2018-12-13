@@ -1,10 +1,13 @@
-import {CommonGoals, ContainerBuildGoals, ContainerPhases, DeployGoals, DeployPhases, Phases} from "../convention/phases";
-import {GoalWithFulfillment} from "@atomist/sdm";
+import {GoalWithFulfillment, WellKnownGoals} from "@atomist/sdm";
+import {Version} from "@atomist/sdm-core";
 import {DockerBuildRegistration} from "@atomist/sdm-pack-docker";
 import {KubernetesDeployRegistration} from "@atomist/sdm-pack-k8/lib/support/KubernetesDeploy";
-import {Version} from "@atomist/sdm-core";
+import {BuildGoals, BuildPhase, CheckPhase, ContainerBuildGoals, ContainerPhase, DeployGoals, DeployPhase} from "../convention/phases";
 
-export type DemoSdmGoals = CommonGoals & ContainerBuildGoals<DockerBuildRegistration> & DeployGoals<KubernetesDeployRegistration> & {
+/**
+ * Goals for this SDM
+ */
+export type DemoSdmGoals = WellKnownGoals & BuildGoals & ContainerBuildGoals<DockerBuildRegistration> & DeployGoals<KubernetesDeployRegistration> & {
     publishGoal: GoalWithFulfillment;
     releaseArtifactGoal: GoalWithFulfillment;
     releaseDocsGoal: GoalWithFulfillment;
@@ -14,4 +17,4 @@ export type DemoSdmGoals = CommonGoals & ContainerBuildGoals<DockerBuildRegistra
     versionGoal: Version;
 };
 
-export type DemoSdmPhases = Phases & ContainerPhases & DeployPhases;
+export type DemoSdmPhases = CheckPhase & BuildPhase & ContainerPhase & DeployPhase;

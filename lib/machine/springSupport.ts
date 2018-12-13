@@ -39,7 +39,7 @@ import {
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
 import {
     autofixGoal,
-    build,
+    buildGoal,
     dockerBuild,
     inspectGoal,
     productionDeployment,
@@ -74,7 +74,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
 
     autofixGoal.with(springFormat(sdm.configuration));
 
-    build.with({
+    buildGoal.with({
         ...MavenDefaultOptions,
         builder: mavenBuilder(),
     });

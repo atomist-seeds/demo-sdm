@@ -34,6 +34,7 @@ import {
 import { Build } from "@atomist/sdm-pack-build";
 import { DockerBuild } from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
+import {CommonGoals, Phases} from "../convention/phases";
 
 export const autofixGoal = new Autofix();
 export const version = new Version();
@@ -41,7 +42,7 @@ export const inspectGoal = new AutoCodeInspection();
 export const fingerprintGoal = new Fingerprint();
 export const pushImpactGoal = new PushImpact();
 
-export const build = new Build();
+export const buildGoal = new Build();
 export const tag = new Tag();
 
 export const dockerBuild = new DockerBuild();
@@ -116,7 +117,15 @@ export const releaseVersion = new GoalWithFulfillment({
     failedDescription: "Incrementing version failure",
 });
 
-export const cancel = new Cancel({ goals: [autofixGoal, build, dockerBuild, publish] });
+export const cancel = new Cancel({ goals: [autofixGoal, buildGoal, dockerBuild, publish] });
+
+export const OurGoals: CommonGoals = {
+    inspectGoal,
+    fingerprintGoal,
+    autofixGoal,
+    pushImpactGoal,
+    buildGoal,
+};
 
 // GOALSET Definition
 
@@ -126,13 +135,13 @@ export const checkGoals = goals("checks")
     .plan(inspectGoal).after(autofixGoal);
 
 // Just running the build and publish
-export const buildGoals = goals("build")
-    .plan(build).after(autofixGoal)
-    .plan(publish).after(build);
+export const buildGoals = goals("buildGoal")
+    .plan(buildGoal).after(autofixGoal)
+    .plan(publish).after(buildGoal);
 
 // Build including docker build
 export const dockerGoals = goals("docker build")
-    .plan(dockerBuild).after(build);
+    .plan(dockerBuild).after(buildGoal);
 
 // Docker build and testing and production kubernetes deploy
 export const stagingDeployGoals = goals("deploy")
@@ -141,3 +150,8 @@ export const stagingDeployGoals = goals("deploy")
 export const productionDeployGoals = goals("prod deploy")
     .plan(productionDeployment).after(stagingDeployment)
     .plan(releaseArtifact, releaseDocker, releaseDocs, releaseTag, releaseVersion).after(productionDeployment);
+
+export const OurPhases: Phases = {
+    checkGoals,
+    buildGoals,
+};

@@ -40,7 +40,7 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
-    build,
+    buildGoal,
     buildGoals,
     checkGoals,
     dockerGoals,
@@ -83,7 +83,7 @@ export function machine(
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
     sdm.addExtensionPacks(
         buildAwareCodeTransforms({
-            buildGoal: build,
+            buildGoal: buildGoal,
             issueCreation: {
                 issueRouter: {
                     raiseIssue: async () => {

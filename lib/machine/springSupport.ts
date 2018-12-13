@@ -39,12 +39,6 @@ import {
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
 import {
     DemoSdmGoals,
-    publishGoal,
-    releaseArtifactGoal,
-    releaseDockerGoal,
-    releaseDocsGoal,
-    releaseTagGoal,
-    releaseVersionGoal,
     versionGoal,
 } from "./goals";
 import {
@@ -84,7 +78,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
         .withProjectListener(MvnVersion)
         .withProjectListener(MvnPackage);
 
-    publishGoal.with({
+    commonGoals.publishGoal.with({
         ...MavenDefaultOptions,
         name: "mvn-publish",
         goalExecutor: noOpImplementation("Publish"),
@@ -102,13 +96,13 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
         deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
     });
 
-    releaseArtifactGoal.with({
+    commonGoals.releaseArtifactGoal.with({
         ...MavenDefaultOptions,
         name: "mvn-release-artifact",
         goalExecutor: noOpImplementation("ReleaseArtifact"),
     });
 
-    releaseDockerGoal.with({
+    commonGoals.releaseDockerGoal.with({
         ...MavenDefaultOptions,
         name: "docker-release",
         goalExecutor: executeReleaseDocker(
@@ -118,19 +112,19 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
     })
         .withProjectListener(DockerPull);
 
-    releaseTagGoal.with({
+    commonGoals.releaseTagGoal.with({
         ...MavenDefaultOptions,
         name: "release-tag",
         goalExecutor: executeReleaseTag(),
     });
 
-    releaseDocsGoal.with({
+    commonGoals.releaseDocsGoal.with({
         ...MavenDefaultOptions,
         name: "release-docs",
         goalExecutor: noOpImplementation("ReleaseDocs"),
     });
 
-    releaseVersionGoal.with({
+    commonGoals.releaseVersionGoal.with({
         ...MavenDefaultOptions,
         name: "mvn-release-version",
         goalExecutor: executeReleaseVersion(MavenProjectIdentifier, asSpawnCommand("mvn build-helper:parse-version versions:set -DnewVersion=" +

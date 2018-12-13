@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-// GOAL Definition
-
 import {
     AutoCodeInspection,
     Autofix,
@@ -27,13 +25,10 @@ import {
     ProductionEnvironment,
     PushImpact,
 } from "@atomist/sdm";
-import {
-    Tag,
-    Version,
-} from "@atomist/sdm-core";
-import { Build } from "@atomist/sdm-pack-build";
+import {Version} from "@atomist/sdm-core";
+import {Build} from "@atomist/sdm-pack-build";
 import {DockerBuild, DockerBuildRegistration} from "@atomist/sdm-pack-docker";
-import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
+import {KubernetesDeploy} from "@atomist/sdm-pack-k8";
 import {CommonGoals, ContainerBuildGoals, ContainerPhases, DeployGoals, DeployPhases, Phases} from "../convention/phases";
 import {KubernetesDeployRegistration} from "@atomist/sdm-pack-k8/lib/support/KubernetesDeploy";
 
@@ -44,7 +39,6 @@ const fingerprintGoal = new Fingerprint();
 const pushImpactGoal = new PushImpact();
 
 const buildGoal = new Build();
-export const tagGoal = new Tag();
 
 const containerBuildGoal = new DockerBuild();
 
@@ -56,7 +50,7 @@ const productionDeployGoal = new KubernetesDeploy({
     preApproval: true,
 });
 
-export const publishGoal = new GoalWithFulfillment({
+const publishGoal = new GoalWithFulfillment({
     uniqueName: "Publish",
     environment: IndependentOfEnvironment,
     orderedName: "2-publish",
@@ -67,7 +61,7 @@ export const publishGoal = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseArtifactGoal = new GoalWithFulfillment({
+const releaseArtifactGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseArtifact",
     environment: ProductionEnvironment,
     orderedName: "3-release-artifact",
@@ -78,7 +72,7 @@ export const releaseArtifactGoal = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseDockerGoal = new GoalWithFulfillment({
+const releaseDockerGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseDocker",
     environment: ProductionEnvironment,
     orderedName: "3-release-docker",
@@ -89,7 +83,7 @@ export const releaseDockerGoal = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseTagGoal = new GoalWithFulfillment({
+const releaseTagGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseTag",
     environment: ProductionEnvironment,
     orderedName: "3-release-tagGoal",
@@ -98,7 +92,7 @@ export const releaseTagGoal = new GoalWithFulfillment({
     failedDescription: "Creating release tagGoal failure",
 });
 
-export const releaseDocsGoal = new GoalWithFulfillment({
+const releaseDocsGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseDocs",
     environment: ProductionEnvironment,
     orderedName: "3-release-docs",
@@ -109,7 +103,7 @@ export const releaseDocsGoal = new GoalWithFulfillment({
     isolated: true,
 });
 
-export const releaseVersionGoal = new GoalWithFulfillment({
+const releaseVersionGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseVersion",
     environment: ProductionEnvironment,
     orderedName: "3-release-version",
@@ -118,9 +112,16 @@ export const releaseVersionGoal = new GoalWithFulfillment({
     failedDescription: "Incrementing version failure",
 });
 
-export const cancelGoal = new Cancel({ goals: [autofixGoal, buildGoal, containerBuildGoal, publishGoal] });
+const cancelGoal = new Cancel({ goals: [autofixGoal, buildGoal, containerBuildGoal, publishGoal] });
 
-export type DemoSdmGoals = CommonGoals & ContainerBuildGoals<DockerBuildRegistration> & DeployGoals<KubernetesDeployRegistration>;
+export type DemoSdmGoals = CommonGoals & ContainerBuildGoals<DockerBuildRegistration> & DeployGoals<KubernetesDeployRegistration> & {
+    publishGoal: GoalWithFulfillment;
+    releaseArtifactGoal: GoalWithFulfillment;
+    releaseDocsGoal: GoalWithFulfillment;
+    releaseDockerGoal: GoalWithFulfillment;
+    releaseTagGoal: GoalWithFulfillment;
+    releaseVersionGoal: GoalWithFulfillment;
+};
 
 export const ourGoals: DemoSdmGoals = {
     inspectGoal,
@@ -128,9 +129,15 @@ export const ourGoals: DemoSdmGoals = {
     autofixGoal,
     pushImpactGoal,
     buildGoal,
+    publishGoal,
     containerBuildGoal,
     stagingDeployGoal,
     productionDeployGoal,
+    releaseArtifactGoal,
+    releaseDocsGoal,
+    releaseDockerGoal,
+    releaseTagGoal,
+    releaseVersionGoal,
 };
 
 // Just running review and autofix

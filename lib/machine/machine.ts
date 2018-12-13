@@ -40,7 +40,8 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
-    sdmGoals, sdmPhases,
+    sdmGoals,
+    sdmPhases,
 } from "./goalImplementations";
 import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";

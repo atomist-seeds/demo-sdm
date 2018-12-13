@@ -25,11 +25,14 @@ import {
     ProductionEnvironment,
     PushImpact,
 } from "@atomist/sdm";
-import {Version} from "@atomist/sdm-core";
-import {Build} from "@atomist/sdm-pack-build";
-import {DockerBuild} from "@atomist/sdm-pack-docker";
-import {KubernetesDeploy} from "@atomist/sdm-pack-k8";
-import {DemoSdmGoals, DemoSdmPhases} from "./goalsAndPhases";
+import { Version } from "@atomist/sdm-core";
+import { Build } from "@atomist/sdm-pack-build";
+import { DockerBuild } from "@atomist/sdm-pack-docker";
+import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
+import {
+    DemoSdmGoals,
+    DemoSdmPhases,
+} from "./goalsAndPhases";
 
 const autofixGoal = new Autofix();
 const versionGoal = new Version();

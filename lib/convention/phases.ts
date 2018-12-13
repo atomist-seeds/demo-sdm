@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-import {FulfillableGoalWithRegistrations, Goals} from "@atomist/sdm";
-import {Build} from "@atomist/sdm-pack-build";
+import {
+    FulfillableGoalWithRegistrations,
+    Goals,
+} from "@atomist/sdm";
+import { Build } from "@atomist/sdm-pack-build";
 
 // TODO this file will be generic and should eventually be pulled out
 

@@ -14,11 +14,22 @@
  * limitations under the License.
  */
 
-import {GoalWithFulfillment, WellKnownGoals} from "@atomist/sdm";
-import {Version} from "@atomist/sdm-core";
-import {DockerBuildRegistration} from "@atomist/sdm-pack-docker";
-import {KubernetesDeployRegistration} from "@atomist/sdm-pack-k8/lib/support/KubernetesDeploy";
-import {BuildGoals, BuildPhase, CheckPhase, ContainerBuildGoals, ContainerPhase, DeployGoals, DeployPhase} from "../convention/phases";
+import {
+    GoalWithFulfillment,
+    WellKnownGoals,
+} from "@atomist/sdm";
+import { Version } from "@atomist/sdm-core";
+import { DockerBuildRegistration } from "@atomist/sdm-pack-docker";
+import { KubernetesDeployRegistration } from "@atomist/sdm-pack-k8/lib/support/KubernetesDeploy";
+import {
+    BuildGoals,
+    BuildPhase,
+    CheckPhase,
+    ContainerBuildGoals,
+    ContainerPhase,
+    DeployGoals,
+    DeployPhase,
+} from "../convention/phases";
 
 /**
  * Goals for this SDM

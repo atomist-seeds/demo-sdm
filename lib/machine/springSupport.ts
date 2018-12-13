@@ -37,7 +37,7 @@ import {
     TransformSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
-import {DemoSdmGoals} from "./goalsAndPhases";
+import { DemoSdmGoals } from "./goalsAndPhases";
 import {
     kubernetesDeploymentData,
     kubernetesDeploymentSpecCreator,

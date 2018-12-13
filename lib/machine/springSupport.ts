@@ -38,10 +38,6 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
 import {
-    DemoSdmGoals,
-    versionGoal,
-} from "./goals";
-import {
     kubernetesDeploymentData,
     kubernetesDeploymentSpecCreator,
 } from "./k8Support";
@@ -58,6 +54,7 @@ import {
     executeReleaseTag,
     executeReleaseVersion,
 } from "./release";
+import {DemoSdmGoals} from "./goalsAndPhases";
 
 export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: DemoSdmGoals) {
     commonGoals.autofixGoal.with(springFormat(sdm.configuration));
@@ -66,7 +63,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, commonGoals: Demo
         builder: mavenBuilder(),
     });
 
-    versionGoal.withVersioner(MavenProjectVersioner);
+    commonGoals.versionGoal.withVersioner(MavenProjectVersioner);
 
     commonGoals.containerBuildGoal.with({
         imageNameCreator: DefaultDockerImageNameCreator,

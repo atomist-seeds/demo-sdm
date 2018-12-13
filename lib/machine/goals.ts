@@ -27,13 +27,12 @@ import {
 } from "@atomist/sdm";
 import {Version} from "@atomist/sdm-core";
 import {Build} from "@atomist/sdm-pack-build";
-import {DockerBuild, DockerBuildRegistration} from "@atomist/sdm-pack-docker";
+import {DockerBuild} from "@atomist/sdm-pack-docker";
 import {KubernetesDeploy} from "@atomist/sdm-pack-k8";
-import {CommonGoals, ContainerBuildGoals, ContainerPhases, DeployGoals, DeployPhases, Phases} from "../convention/phases";
-import {KubernetesDeployRegistration} from "@atomist/sdm-pack-k8/lib/support/KubernetesDeploy";
+import {DemoSdmGoals, DemoSdmPhases} from "./goalsAndPhases";
 
 const autofixGoal = new Autofix();
-export const versionGoal = new Version();
+const versionGoal = new Version();
 const inspectGoal = new AutoCodeInspection();
 const fingerprintGoal = new Fingerprint();
 const pushImpactGoal = new PushImpact();
@@ -114,15 +113,6 @@ const releaseVersionGoal = new GoalWithFulfillment({
 
 const cancelGoal = new Cancel({ goals: [autofixGoal, buildGoal, containerBuildGoal, publishGoal] });
 
-export type DemoSdmGoals = CommonGoals & ContainerBuildGoals<DockerBuildRegistration> & DeployGoals<KubernetesDeployRegistration> & {
-    publishGoal: GoalWithFulfillment;
-    releaseArtifactGoal: GoalWithFulfillment;
-    releaseDocsGoal: GoalWithFulfillment;
-    releaseDockerGoal: GoalWithFulfillment;
-    releaseTagGoal: GoalWithFulfillment;
-    releaseVersionGoal: GoalWithFulfillment;
-};
-
 export const ourGoals: DemoSdmGoals = {
     inspectGoal,
     fingerprintGoal,
@@ -138,6 +128,7 @@ export const ourGoals: DemoSdmGoals = {
     releaseDockerGoal,
     releaseTagGoal,
     releaseVersionGoal,
+    versionGoal,
 };
 
 // Just running review and autofix
@@ -162,8 +153,6 @@ const productionDeployGoals = goals("prod deploy")
     .plan(productionDeployGoal).after(stagingDeployGoal)
     .plan(releaseArtifactGoal, releaseDockerGoal, releaseDocsGoal, releaseTagGoal, releaseVersionGoal)
     .after(productionDeployGoal);
-
-export type DemoSdmPhases = Phases & ContainerPhases & DeployPhases;
 
 export const ourPhases: DemoSdmPhases = {
     checkGoals,

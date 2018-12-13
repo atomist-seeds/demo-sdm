@@ -56,7 +56,7 @@ const publishGoal = new GoalWithFulfillment({
     uniqueName: "Publish",
     environment: IndependentOfEnvironment,
     orderedName: "2-publish",
-    displayName: "publishGoal",
+    displayName: "publish",
     workingDescription: "Publishing",
     completedDescription: "Published",
     failedDescription: "Published failed",
@@ -88,10 +88,10 @@ const releaseDockerGoal = new GoalWithFulfillment({
 const releaseTagGoal = new GoalWithFulfillment({
     uniqueName: "ReleaseTag",
     environment: ProductionEnvironment,
-    orderedName: "3-release-tagGoal",
-    displayName: "create release tagGoal",
-    completedDescription: "Created release tagGoal",
-    failedDescription: "Creating release tagGoal failure",
+    orderedName: "3-release-tag",
+    displayName: "create release tag",
+    completedDescription: "Created release tag",
+    failedDescription: "Creating release tag failure",
 });
 
 const releaseDocsGoal = new GoalWithFulfillment({
@@ -140,7 +140,7 @@ const checkGoals = goals("checks")
     .plan(inspectGoal).after(autofixGoal);
 
 // Just running the build and publish
-const buildGoals = goals("buildGoal")
+const buildGoals = goals("build")
     .plan(buildGoal).after(autofixGoal)
     .plan(publishGoal).after(buildGoal);
 

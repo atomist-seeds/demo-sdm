@@ -23,12 +23,9 @@ import {
     ChannelLinkListener,
     CodeTransform,
     CodeTransformRegistration,
+    slackQuestionMessage,
 } from "@atomist/sdm";
 import { BuildAwareMarker } from "@atomist/sdm-pack-build";
-import {
-    Attachment,
-    SlackMessage,
-} from "@atomist/slack-messages";
 
 export const AddDockerfileCommandName = "AddDockerfile";
 
@@ -63,18 +60,15 @@ export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {
         return;
     }
 
-    const attachment: Attachment = {
-        text: "Add a Dockerfile to your new repo?",
-        fallback: "Add a Dockerfile to your new repo?",
-        actions: [buttonForCommand({ text: "Add Dockerfile" },
-            AddDockerfileCommandName,
-            { "targets.owner": inv.id.owner, "targets.repo": inv.id.repo },
-        ),
-        ],
-    };
-    const message: SlackMessage = {
-        attachments: [attachment],
-    };
+    const message = slackQuestionMessage(
+        "Dockerfile",
+        "Add a Dockerfile to your new repository?",
+        {
+            actions: [buttonForCommand({ text: "Add Dockerfile" },
+                AddDockerfileCommandName,
+                { "targets.owner": inv.id.owner, "targets.repo": inv.id.repo },
+            )],
+        });
     return inv.addressNewlyLinkedChannel(message);
 };
 

@@ -20,14 +20,14 @@
     "url": "https://github.com/atomist/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "1.1.0-master.20181116082132",
-    "@atomist/sdm": "1.1.0-master.20181119070450",
-    "@atomist/sdm-core": "1.1.0-master.20181113230355",
-    "@atomist/sdm-pack-build": "1.0.2-master.20181115164338",
-    "@atomist/sdm-pack-docker": "1.0.2-master.20181115172213",
-    "@atomist/sdm-pack-issue": "1.0.3-master.20181115055007",
-    "@atomist/sdm-pack-k8": "1.0.2-master.20181109214032",
-    "@atomist/sdm-pack-spring": "1.0.2-master.20181116074715",
+    "@atomist/automation-client": "1.2.0-master.20181219081649",
+    "@atomist/sdm": "1.2.0-master.20181219091010",
+    "@atomist/sdm-core": "1.2.0-master.20181213212357",
+    "@atomist/sdm-pack-build": "1.0.4-master.20181217220011",
+    "@atomist/sdm-pack-docker": "1.0.3-master.20181218081846",
+    "@atomist/sdm-pack-issue": "1.1.1-master.20181213113748",
+    "@atomist/sdm-pack-k8": "1.0.2-master.20181211175728",
+    "@atomist/sdm-pack-spring": "1.1.0-master.20181210133355",
     "@atomist/slack-messages": "1.1.0-master.20181115202354",
     "@types/app-root-path": "^1.2.4",
     "@types/dateformat": "^1.0.1",
@@ -40,7 +40,7 @@
     "lodash": "^4.17.10"
   },
   "devDependencies": {
-    "@atomist/sdm-local": "^1.0.2",
+    "@atomist/sdm-local": "1.0.4-master.20181211132012",
     "@types/mocha": "^5.2.5",
     "@types/power-assert": "^1.4.29",
     "espower-typescript": "^9.0.0",

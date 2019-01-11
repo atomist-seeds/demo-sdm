@@ -68,5 +68,9 @@ export const configuration: Configuration = {
         build: {
             tag: false,
         },
+        cache: {
+            enabled: true,
+            path: "/opt/data",
+        },
     },
 };

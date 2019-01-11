@@ -20,10 +20,7 @@ import {
 } from "@atomist/automation-client";
 import { SoftwareDeliveryMachine } from "@atomist/sdm";
 import { isInLocalMode } from "@atomist/sdm-core";
-import {
-    DefaultDockerImageNameCreator,
-    DockerOptions,
-} from "@atomist/sdm-pack-docker";
+import { DockerOptions } from "@atomist/sdm-pack-docker";
 import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
 import {
     mavenBuilder,

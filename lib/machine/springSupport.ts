@@ -82,6 +82,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
         options: {
             ...sdm.configuration.sdm.docker.hub as DockerOptions,
             dockerfileFinder: async () => "Dockerfile",
+            push: true,
             builder: "kaniko",
         },
     })

@@ -23,6 +23,7 @@ import {
     ChannelLinkListener,
     CodeTransform,
     CodeTransformRegistration,
+    formatDate,
     slackQuestionMessage,
 } from "@atomist/sdm";
 import { BuildAwareMarker } from "@atomist/sdm-pack-build";
@@ -46,7 +47,7 @@ export const AddDockerfile: CodeTransformRegistration = {
         message: `Add Dockerfile
 
 ${BuildAwareMarker} ${editModes.AutoMergeMode.SuccessfulCheck} ${editModes.AutoMergeMethod.Merge}`,
-        branch: `add-dockerfile-${Date.now()}`,
+        branch: `add-dockerfile-${formatDate()}`,
     } as editModes.BranchCommit),
 };
 
@@ -76,7 +77,7 @@ export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {
 
 const springDockerfile = `FROM openjdk:8
 
-ENV DUMB_INIT_VERSION=1.2.1
+ENV DUMB_INIT_VERSION=1.2.2
 
 RUN curl -s -L -O https://github.com/Yelp/dumb-init/releases/download/v$DUMB_INIT_VERSION/dumb-init_\${DUMB_INIT_VERSION}_amd64.deb \\
     && dpkg -i dumb-init_\${DUMB_INIT_VERSION}_amd64.deb \\
@@ -84,9 +85,9 @@ RUN curl -s -L -O https://github.com/Yelp/dumb-init/releases/download/v$DUMB_INI
 
 MAINTAINER Atomist <docker@atomist.com>
 
-RUN mkdir -p /opt/app
+RUN mkdir -p /app
 
-WORKDIR /opt/app
+WORKDIR /app
 
 EXPOSE 8080
 

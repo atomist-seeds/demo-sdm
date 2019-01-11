@@ -82,10 +82,10 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
     version.withVersioner(MavenProjectVersioner);
 
     dockerBuild.with({
-        imageNameCreator: DefaultDockerImageNameCreator,
         options: {
             ...sdm.configuration.sdm.docker.hub as DockerOptions,
             dockerfileFinder: async () => "Dockerfile",
+            builder: "kaniko",
         },
     })
         .withProjectListener(MvnVersion)

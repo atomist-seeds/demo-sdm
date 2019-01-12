@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "@atomist/automation-client": "1.2.1-master.20190110143442",
-    "@atomist/sdm": "1.2.1-master.20190108111305",
-    "@atomist/sdm-core": "1.2.1-kubectl-removal.20190110212957",
+    "@atomist/sdm": "1.3.0-goal-launching.20190112115551",
+    "@atomist/sdm-core": "1.3.0-kubectl-removal.20190112123041",
     "@atomist/sdm-pack-build": "1.0.4-master.20190110123121",
     "@atomist/sdm-pack-docker": "1.1.0-kaniko.20190111163755",
     "@atomist/sdm-pack-issue": "1.1.1-master.20190108144409",

@@ -33,7 +33,7 @@ import {
 } from "@atomist/sdm-core";
 import { Build } from "@atomist/sdm-pack-build";
 import { DockerBuild } from "@atomist/sdm-pack-docker";
-import { KubernetesDeploy } from "@atomist/sdm-pack-k8";
+import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
 
 export const autofix = new Autofix();
 export const version = new Version();
@@ -46,9 +46,7 @@ export const tag = new Tag();
 
 export const dockerBuild = new DockerBuild();
 
-export const stagingDeployment = new KubernetesDeploy({
-    environment: "testing",
-});
+export const stagingDeployment = new KubernetesDeploy({ environment: "testing" });
 export const productionDeployment = new KubernetesDeploy({
     environment: "production",
     preApproval: true,

@@ -1,32 +1,33 @@
 {
   "name": "@atomist/demo-sdm",
-  "version": "1.0.1",
-  "description": "an Atomist SDM to deliver automation client projects",
+  "version": "1.0.0",
+  "description": "Atomist SDM to build and deploy demo projects",
   "author": "Atomist, Inc.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/atomist/demo-sdm.git"
+    "url": "https://github.com/atomist-seeds/demo-sdm.git"
   },
   "keywords": [
     "atomist",
     "automation",
+    "demo",
     "github",
     "kubernetes",
     "sdm"
   ],
-  "homepage": "https://github.com/atomist/demo-sdm#readme",
+  "homepage": "https://github.com/atomist-seeds/demo-sdm#readme",
   "bugs": {
-    "url": "https://github.com/atomist/demo-sdm/issues"
+    "url": "https://github.com/atomist-seeds/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "1.3.0-master.20190115210858",
-    "@atomist/sdm": "1.3.0-master.20190115223640",
-    "@atomist/sdm-core": "1.3.0-master.20190115225713",
+    "@atomist/automation-client": "1.3.0-master.20190211141235",
+    "@atomist/sdm": "1.3.0-master.20190214121328",
+    "@atomist/sdm-core": "1.3.0-master.20190213143939",
     "@atomist/sdm-pack-build": "1.0.4-master.20190110123121",
     "@atomist/sdm-pack-docker": "1.1.0-kaniko.20190116163937",
     "@atomist/sdm-pack-issue": "1.1.1-master.20190108144409",
-    "@atomist/sdm-pack-k8": "1.0.2-master.20181211175728",
+    "@atomist/sdm-pack-k8s": "1.3.5",
     "@atomist/sdm-pack-spring": "1.1.1-master.20190111110331",
     "@atomist/slack-messages": "^1.1.0",
     "@types/app-root-path": "^1.2.4",
@@ -50,9 +51,9 @@
     "rimraf": "^2.6.2",
     "supervisor": "^0.12.0",
     "ts-node": "7.0.1",
-    "tslint": "^5.11.0",
-    "typedoc": "^0.13.0",
-    "typescript": "^3.1.6"
+    "tslint": "^5.12.1",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.3.3"
   },
   "directories": {
     "test": "test"

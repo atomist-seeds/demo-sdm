@@ -50,9 +50,8 @@ import {
     version,
 } from "./goals";
 import {
-    kubernetesDeploymentData,
-    kubernetesDeploymentSpecCreator,
-} from "./k8Support";
+    kubernetesApplicationData,
+} from "./k8sSupport";
 import {
     MavenDefaultOptions,
     MavenProjectVersioner,
@@ -95,17 +94,9 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
         goalExecutor: noOpImplementation("Publish"),
     });
 
-    stagingDeployment.with({
-        name: "staging-deployment",
-        deploymentData: kubernetesDeploymentData(sdm),
-        deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
-    });
-
-    productionDeployment.with({
-        name: "production-deployment",
-        deploymentData: kubernetesDeploymentData(sdm),
-        deploymentSpecCreator: kubernetesDeploymentSpecCreator(sdm),
-    });
+    const kubernetesDeployRegistrationDemo = { applicationData: kubernetesApplicationData };
+    stagingDeployment.with(kubernetesDeployRegistrationDemo);
+    productionDeployment.with(kubernetesDeployRegistrationDemo);
 
     releaseArtifact.with({
         ...MavenDefaultOptions,

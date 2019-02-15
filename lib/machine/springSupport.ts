@@ -46,9 +46,7 @@ import {
     stagingDeployment,
     version,
 } from "./goals";
-import {
-    kubernetesApplicationData,
-} from "./k8sSupport";
+import { kubernetesApplicationData } from "./k8sSupport";
 import {
     MavenDefaultOptions,
     MavenProjectVersioner,

@@ -27,6 +27,7 @@ import {
 import {
     createSoftwareDeliveryMachine,
     gitHubGoalStatus,
+    goalScheduling,
     goalState,
     IsGitHubAction,
 } from "@atomist/sdm-core";
@@ -92,6 +93,7 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
         issueSupport(),
         goalState(),
         gitHubGoalStatus(),
+        goalScheduling(),
     );
 
     return sdm;

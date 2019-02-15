@@ -34,6 +34,7 @@ import {
 import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
 import { issueSupport } from "@atomist/sdm-pack-issue";
+import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
@@ -94,6 +95,7 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
         goalState(),
         gitHubGoalStatus(),
         goalScheduling(),
+        k8sSupport({ addCommands: true }),
     );
 
     return sdm;

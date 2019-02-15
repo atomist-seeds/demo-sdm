@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import {
-    Configuration,
-    safeExec,
-} from "@atomist/automation-client";
+import { Configuration } from "@atomist/automation-client";
+import { execPromise } from "@atomist/sdm";
 import {
     ConfigureOptions,
     configureSdm,
@@ -35,6 +33,7 @@ const machineOptions: ConfigureOptions = {
     ],
 };
 
+/* tslint:disable:no-invalid-template-strings */
 export const configuration: Configuration = {
     postProcessors: [
         async config => {
@@ -53,8 +52,8 @@ export const configuration: Configuration = {
                     },
                 };
 
-                await safeExec("git", ["config", "--global", "user.email", "\"bot@atomist.com\""]);
-                await safeExec("git", ["config", "--global", "user.name", "\"Atomist Bot\""]);
+                await execPromise("git", ["config", "--global", "user.email", "\"bot@atomist.com\""]);
+                await execPromise("git", ["config", "--global", "user.name", "\"Atomist Bot\""]);
 
             }
             return config;

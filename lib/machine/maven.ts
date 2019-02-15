@@ -16,7 +16,6 @@
 
 import {
     GitProject,
-    spawnAndWatch,
 } from "@atomist/automation-client";
 import {
     DelimitedWriteProgressLogDecorator,
@@ -26,6 +25,7 @@ import {
     GoalProjectListenerEvent,
     GoalProjectListenerRegistration,
     LogSuppressor,
+    spawnLog,
 } from "@atomist/sdm";
 import {
     ProjectVersioner,
@@ -51,15 +51,13 @@ export async function mvnVersionProjectListener(p: GitProject,
                                                 event: GoalProjectListenerEvent): Promise<void | ExecuteGoalResult> {
     if (event === GoalProjectListenerEvent.before) {
         const v = await readSdmVersion(
-            gi.sdmGoal.repo.owner,
-            gi.sdmGoal.repo.name,
-            gi.sdmGoal.repo.providerId,
-            gi.sdmGoal.sha,
-            gi.sdmGoal.branch,
+            gi.goalEvent.repo.owner,
+            gi.goalEvent.repo.name,
+            gi.goalEvent.repo.providerId,
+            gi.goalEvent.sha,
+            gi.goalEvent.branch,
             gi.context);
-        return spawnAndWatch({
-            command: "mvn", args: ["versions:set", `-DnewVersion=${v}`, "versions:commit"],
-        }, { cwd: p.baseDir }, gi.progressLog);
+        return spawnLog("mvn", ["versions:set", `-DnewVersion=${v}`, "versions:commit"], { cwd: p.baseDir, log: gi.progressLog });
     }
 }
 
@@ -73,9 +71,7 @@ async function mvnPackageProjectListener(p: GitProject,
                                          gi: GoalInvocation,
                                          event: GoalProjectListenerEvent): Promise<void | ExecuteGoalResult> {
     if (event === GoalProjectListenerEvent.before) {
-        return spawnAndWatch({
-            command: "mvn", args: ["package", "-DskipTests=true"],
-        }, { cwd: p.baseDir }, gi.progressLog);
+        return spawnLog("mvn", ["package", "-DskipTests=true"], { cwd: p.baseDir, log: gi.progressLog });
     }
 }
 

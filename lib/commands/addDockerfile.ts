@@ -43,12 +43,15 @@ export const AddDockerfile: CodeTransformRegistration = {
     transform: addDockerfileTransform,
     name: AddDockerfileCommandName,
     intent: "add dockerfile",
-    transformPresentation: () => ({
-        message: `Add Dockerfile
+    transformPresentation: () => {
+        const bc: editModes.BranchCommit = {
+            message: `Add Dockerfile
 
 ${BuildAwareMarker} ${editModes.AutoMergeMode.SuccessfulCheck} ${editModes.AutoMergeMethod.Merge}`,
-        branch: `add-dockerfile-${formatDate()}`,
-    } as editModes.BranchCommit),
+            branch: `add-dockerfile-${formatDate()}`,
+        };
+        return bc;
+    },
 };
 
 export const SuggestAddingDockerfile: ChannelLinkListener = async inv => {

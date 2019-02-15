@@ -32,7 +32,7 @@ import {
 } from "@atomist/sdm-core";
 import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
-import { IssueSupport } from "@atomist/sdm-pack-issue";
+import { issueSupport } from "@atomist/sdm-pack-issue";
 import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
@@ -50,15 +50,12 @@ import {
 import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";
 
-export function machine(
-    configuration: SoftwareDeliveryMachineConfiguration,
-): SoftwareDeliveryMachine {
+export function machine(configuration: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
     const sdm = createSoftwareDeliveryMachine({
-            name: "Kubernetes Demo Software Delivery Machine",
-            configuration,
-        },
-    );
+        name: "Kubernetes Demo Software Delivery Machine",
+        configuration,
+    });
 
     sdm.withPushRules(
         whenPushSatisfies(not(isMaterialChange({
@@ -92,9 +89,10 @@ export function machine(
                 },
             },
         }),
-        IssueSupport,
+        issueSupport(),
         goalState(),
-        gitHubGoalStatus());
+        gitHubGoalStatus(),
+    );
 
     return sdm;
 }

@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-// tslint:disable:max-file-line-count
-
 import {
-    ChildProcessResult,
     configurationValue,
     GitCommandGitProject,
     GitHubRepoRef,
     GitProject,
     logger,
     RemoteRepoRef,
-    SpawnCommand,
     Success,
     TokenCredentials,
 } from "@atomist/automation-client";
@@ -37,7 +33,9 @@ import {
     GoalProjectListenerRegistration,
     ProgressLog,
     PushTest,
-    spawnAndWatch,
+    spawnLog,
+    SpawnLogCommand,
+    SpawnLogOptions,
 } from "@atomist/sdm";
 import {
     createTagForStatus,
@@ -49,7 +47,6 @@ import {
     DockerOptions,
     HasDockerfile,
 } from "@atomist/sdm-pack-docker";
-import { SpawnOptions } from "child_process";
 
 async function loglog(log: ProgressLog, msg: string): Promise<void> {
     logger.debug(msg);
@@ -65,11 +62,11 @@ interface ProjectRegistryInfo {
 
 async function rwlcVersion(gi: GoalInvocation): Promise<string> {
     const version = await readSdmVersion(
-        gi.sdmGoal.repo.owner,
-        gi.sdmGoal.repo.name,
-        gi.sdmGoal.repo.providerId,
-        gi.sdmGoal.sha,
-        gi.sdmGoal.branch,
+        gi.goalEvent.repo.owner,
+        gi.goalEvent.repo.name,
+        gi.goalEvent.repo.providerId,
+        gi.goalEvent.sha,
+        gi.goalEvent.branch,
         gi.context);
     return version;
 }
@@ -85,7 +82,7 @@ function dockerImage(p: ProjectRegistryInfo): string {
 type ExecuteLogger = (l: ProgressLog) => Promise<ExecuteGoalResult>;
 
 interface SpawnWatchCommand {
-    cmd: SpawnCommand;
+    cmd: SpawnLogCommand;
     cwd?: string;
 }
 
@@ -100,21 +97,21 @@ interface SpawnWatchCommand {
 function spawnExecuteLogger(swc: SpawnWatchCommand): ExecuteLogger {
 
     return async (log: ProgressLog) => {
-        const opts: SpawnOptions = {
+        const opts: SpawnLogOptions = {
             ...swc.cmd.options,
+            log,
         };
         if (swc.cwd) {
             opts.cwd = swc.cwd;
         }
-        let res: ChildProcessResult;
+        let res;
         try {
-            res = await spawnAndWatch(swc.cmd, opts, log);
+            res = await spawnLog(swc.cmd.command, swc.cmd.args, opts);
         } catch (e) {
             res = {
                 error: true,
                 code: -1,
                 message: `Spawned command errored: ${swc.cmd.command} ${swc.cmd.args.join(" ")}: ${e.message}`,
-                childProcess: undefined,
             };
         }
         if (res.error) {
@@ -183,9 +180,12 @@ async function executeLoggers(els: ExecuteLogger[], progressLog: ProgressLog): P
     return Success;
 }
 
-export async function dockerPullProjectListner(p: GitProject,
-                                               gi: GoalInvocation,
-                                               event: GoalProjectListenerEvent): Promise<void | ExecuteGoalResult> {
+export async function dockerPullProjectListner(
+    p: GitProject,
+    gi: GoalInvocation,
+    event: GoalProjectListenerEvent,
+): Promise<void | ExecuteGoalResult> {
+
     if (event === GoalProjectListenerEvent.before) {
         const version = await rwlcVersion(gi);
         const dockerOptions = configurationValue<DockerOptions>("sdm.docker.hub");
@@ -237,12 +237,12 @@ export function executeReleaseDocker(
             const versionRelease = releaseVersion(version);
             const image = dockerImage({
                 registry: options.registry,
-                name: gi.sdmGoal.repo.name,
+                name: gi.goalEvent.repo.name,
                 version,
             });
             const tag = dockerImage({
                 registry: options.registry,
-                name: gi.sdmGoal.repo.name,
+                name: gi.goalEvent.repo.name,
                 version: versionRelease,
             });
 
@@ -273,8 +273,8 @@ export function executeReleaseTag(): ExecuteGoal {
         return configuration.sdm.projectLoader.doWithProject({ credentials, id, context, readOnly: true }, async p => {
             const version = await rwlcVersion(gi);
             const versionRelease = releaseVersion(version);
-            await createTagForStatus(id, gi.sdmGoal.sha, gi.sdmGoal.push.after.message, versionRelease, credentials);
-            const commitTitle = gi.sdmGoal.push.after.message.replace(/\n[\S\s]*/, "");
+            await createTagForStatus(id, gi.goalEvent.sha, gi.goalEvent.push.after.message, versionRelease, credentials);
+            const commitTitle = gi.goalEvent.push.after.message.replace(/\n[\S\s]*/, "");
             const release = {
                 tag_name: versionRelease,
                 name: `${versionRelease}: ${commitTitle}`,
@@ -296,7 +296,7 @@ export function executeReleaseTag(): ExecuteGoal {
  */
 export function executeReleaseVersion(
     projectIdentifier: ProjectIdentifier,
-    incrementPatchCmd: SpawnCommand = { command: "npm", args: ["version", "--no-git-tag-version", "patch"] },
+    incrementPatchCmd: SpawnLogCommand = { command: "npm", args: ["version", "--no-git-tag-version", "patch"] },
 ): ExecuteGoal {
 
     return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
@@ -309,7 +309,7 @@ export function executeReleaseVersion(
 
             const log = new DelimitedWriteProgressLogDecorator(gi.progressLog, "\n");
             const slug = `${gp.id.owner}/${gp.id.repo}`;
-            const branch = gi.sdmGoal.branch;
+            const branch = gi.goalEvent.branch;
             const remote = gp.remote || "origin";
             const preEls: ExecuteLogger[] = [
                 gitExecuteLogger(gp, () => gp.checkout(branch), "checkout"),

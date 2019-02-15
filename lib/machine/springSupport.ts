@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    asSpawnCommand,
-    GitHubRepoRef,
-} from "@atomist/automation-client";
+import { GitHubRepoRef } from "@atomist/automation-client";
 import { SoftwareDeliveryMachine } from "@atomist/sdm";
 import { isInLocalMode } from "@atomist/sdm-core";
 import { DockerOptions } from "@atomist/sdm-pack-docker";
@@ -66,7 +63,7 @@ import {
     executeReleaseVersion,
 } from "./release";
 
-export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
+export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
 
     autofix.with(springFormat(sdm.configuration));
 
@@ -129,9 +126,12 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine) {
     releaseVersion.with({
         ...MavenDefaultOptions,
         name: "mvn-release-version",
-        goalExecutor: executeReleaseVersion(MavenProjectIdentifier, asSpawnCommand("mvn build-helper:parse-version versions:set -DnewVersion=" +
-            "\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}" +
-            "-\${parsedVersion.qualifier} versions:commit")),
+        goalExecutor: executeReleaseVersion(MavenProjectIdentifier, {
+            command: "mvn",
+            args: ["build-helper:parse-version", "versions:set",
+                "-DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}",
+                "-\${parsedVersion.qualifier}", "versions:commit"],
+        }),
     });
 
     sdm.addGeneratorCommand<SpringProjectCreationParameters>({

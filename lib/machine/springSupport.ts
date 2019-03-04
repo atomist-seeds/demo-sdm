@@ -126,9 +126,13 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
         name: "mvn-release-version",
         goalExecutor: executeReleaseVersion(MavenProjectIdentifier, {
             command: "mvn",
-            args: ["build-helper:parse-version", "versions:set",
-                "-DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}",
-                "-\${parsedVersion.qualifier}", "versions:commit"],
+            args: [
+                "build-helper:parse-version",
+                "versions:set",
+                // tslint:disable-next-line:max-line-length
+                "-DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}-\${parsedVersion.qualifier}",
+                "versions:commit",
+            ],
         }),
     });
 

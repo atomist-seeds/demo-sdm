@@ -82,7 +82,7 @@ export async function kubernetesApplicationData(
  * Provide Kubernetes application ingress-related properties.
  */
 export function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplication> {
-    const path = `/${repo}/?(.*)`;
+    const path = `/${repo}/`;
     const host = `play.atomist.${(ns === "testing") ? "io" : "com"}`;
     const protocol = "https";
     const tlsSecret = host.replace(/\./g, "-").replace("play", "star");
@@ -93,6 +93,19 @@ export function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApp
                 "nginx.ingress.kubernetes.io/client-body-buffer-size": "1m",
                 "nginx.ingress.kubernetes.io/rewrite-target": "/$1",
             },
+        },
+        spec: {
+            rules: [
+                {
+                    http: {
+                        paths: [
+                            {
+                                path: `/${repo}/?(.*)`,
+                            },
+                        ],
+                    },
+                },
+            ],
         },
     };
 

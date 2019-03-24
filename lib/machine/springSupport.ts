@@ -77,7 +77,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
             ...sdm.configuration.sdm.docker.hub as DockerOptions,
             dockerfileFinder: async () => "Dockerfile",
             push: true,
-            builder: "kaniko",
+            // builder: "kaniko",
         },
     })
         .withProjectListener(MvnVersion)

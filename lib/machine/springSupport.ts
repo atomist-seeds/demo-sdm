@@ -28,7 +28,7 @@ import {
     SpringProjectCreationParameterDefinitions,
     SpringProjectCreationParameters,
     springSupport,
-    TransformSeedToCustomProject,
+    TransformMavenSpringBootSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
 import {
@@ -145,7 +145,7 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
         transform: [
             ReplaceReadmeTitle,
             SetAtomistTeamInApplicationYml,
-            TransformSeedToCustomProject,
+            TransformMavenSpringBootSeedToCustomProject as any,
         ],
     });
 

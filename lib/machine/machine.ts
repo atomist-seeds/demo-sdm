@@ -26,10 +26,10 @@ import {
 } from "@atomist/sdm";
 import {
     createSoftwareDeliveryMachine,
-    gitHubGoalStatus,
-    goalScheduling,
-    goalState,
+    githubGoalStatusSupport,
+    goalStateSupport,
     IsGitHubAction,
+    k8sGoalSchedulingSupport,
 } from "@atomist/sdm-core";
 import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
@@ -92,9 +92,9 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
             },
         }),
         issueSupport(),
-        goalState(),
-        gitHubGoalStatus(),
-        goalScheduling(),
+        goalStateSupport(),
+        githubGoalStatusSupport(),
+        k8sGoalSchedulingSupport(),
         k8sSupport({ addCommands: true }),
     );
 

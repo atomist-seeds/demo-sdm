@@ -99,7 +99,7 @@ export const releaseDocs = new GoalWithFulfillment({
     environment: ProductionEnvironment,
     orderedName: "3-release-docs",
     displayName: "publish docs",
-    workingDescription: "Publishing docs...",
+    workingDescription: "Publishing docs",
     completedDescription: "Published docs",
     failedDescription: "Publishing docs failure",
     isolated: true,

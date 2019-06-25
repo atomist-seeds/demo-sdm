@@ -15,41 +15,24 @@
  */
 
 import {
-    and,
     AutoCodeInspection,
     Autofix,
     Cancel,
     Fingerprint,
     GoalWithFulfillment,
-    ImmaterialGoals,
-    isMaterialChange,
-    not,
-    or,
     ProductionEnvironment,
     PushImpact,
-    ToDefaultBranch,
 } from "@atomist/sdm";
 import {
-    GoalData,
-    IsGitHubAction,
     Version,
 } from "@atomist/sdm-core";
 import {
     Build,
 } from "@atomist/sdm-pack-build";
-import {
-    DockerBuild,
-    HasDockerfile,
-} from "@atomist/sdm-pack-docker";
+import { DockerBuild } from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
-import {
-    HasSpringBootApplicationClass,
-    HasSpringBootPom,
-    IsMaven,
-} from "@atomist/sdm-pack-spring";
-import { IsReleaseCommit } from "./release";
 
-const goals = {
+const baseGoals = {
     autofix: new Autofix(),
     version: new Version(),
     codeInspection: new AutoCodeInspection(),
@@ -90,61 +73,17 @@ const goals = {
     }),
     cancel: new Cancel(),
 };
-export type DemoGoals = typeof goals;
+baseGoals.cancel = new Cancel({ goals: [baseGoals.autofix, baseGoals.build, baseGoals.dockerBuild] });
+export type DemoGoals = typeof baseGoals;
 
-export interface DemoGoalsData {
-    goals: DemoGoals;
-    goalData: GoalData;
-}
-
+let fullGoals: DemoGoals;
 /**
- * Return goal sets and their relationships.
+ * Goals used by this SDM. Is this better than just exporting a const?
  */
-export function goalsData(): DemoGoalsData {
-    const ImmaterialChange = not(isMaterialChange({
-        extensions: ["java", "html", "json", "yml", "xml", "sh", "kt", "properties"],
-        files: ["Dockerfile"],
-        directories: [".atomist", ".github"],
-    }));
-
-    goals.cancel = new Cancel({ goals: [goals.autofix, goals.build, goals.dockerBuild] });
-
-    const goalData = {
-        immaterial: {
-            test: or(ImmaterialChange, IsReleaseCommit),
-            goals: ImmaterialGoals.andLock(),
-        },
-        check: {
-            test: IsMaven,
-            goals: [
-                [goals.cancel, goals.autofix],
-                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
-            ],
-        },
-        build: {
-            dependsOn: ["check"],
-            test: IsMaven,
-            goals: goals.build,
-        },
-        docker: {
-            dependsOn: ["build"],
-            test: and(IsMaven, HasDockerfile),
-            goals: goals.dockerBuild,
-        },
-        stagingDeploy: {
-            dependsOn: ["docker"],
-            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
-            goals: goals.stagingDeployment,
-        },
-        productionDeploy: {
-            dependsOn: ["stagingDeploy"],
-            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
-            goals: [
-                goals.productionDeployment,
-                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
-            ],
-        },
-    };
-
-    return { goals, goalData };
+export function sdmGoals(): DemoGoals {
+    // Take care not to reinstantiate anything if called multiple times
+    if (!fullGoals) {
+        fullGoals = baseGoals;
+    }
+    return fullGoals;
 }

@@ -15,13 +15,9 @@
  */
 
 import {
-    GitProject,
-} from "@atomist/automation-client";
-import {
-    DelimitedWriteProgressLogDecorator,
-    ExecuteGoal,
     ExecuteGoalResult,
-    GoalInvocation,
+    formatDate,
+    GoalProjectListener,
     GoalProjectListenerEvent,
     GoalProjectListenerRegistration,
     LogSuppressor,
@@ -36,19 +32,16 @@ import {
     MavenProgressReporter,
     MavenProjectIdentifier,
 } from "@atomist/sdm-pack-spring";
-import * as df from "dateformat";
 
 export const MavenProjectVersioner: ProjectVersioner = async (status, p, log) => {
     const projectId = await MavenProjectIdentifier(p);
     const baseVersion = projectId.version.replace(/-.*/, "");
     const branch = status.branch.split("/").join(".");
     const branchSuffix = (branch !== status.push.repo.defaultBranch) ? `${branch}.` : "";
-    return `${baseVersion}-${branchSuffix}${df(new Date(), "yyyymmddHHMMss")}`;
+    return `${baseVersion}-${branchSuffix}${formatDate()}`;
 };
 
-export async function mvnVersionProjectListener(p: GitProject,
-                                                gi: GoalInvocation,
-                                                event: GoalProjectListenerEvent): Promise<void | ExecuteGoalResult> {
+const mvnVersionProjectListener: GoalProjectListener = async (p, gi, event): Promise<void | ExecuteGoalResult> => {
     if (event === GoalProjectListenerEvent.before) {
         const v = await readSdmVersion(
             gi.goalEvent.repo.owner,
@@ -59,7 +52,7 @@ export async function mvnVersionProjectListener(p: GitProject,
             gi.context);
         return spawnLog("mvn", ["versions:set", `-DnewVersion=${v}`, "versions:commit"], { cwd: p.baseDir, log: gi.progressLog });
     }
-}
+};
 
 export const MvnVersion: GoalProjectListenerRegistration = {
     name: "mvn-version",
@@ -67,30 +60,17 @@ export const MvnVersion: GoalProjectListenerRegistration = {
     pushTest: IsMaven,
 };
 
-async function mvnPackageProjectListener(p: GitProject,
-                                         gi: GoalInvocation,
-                                         event: GoalProjectListenerEvent): Promise<void | ExecuteGoalResult> {
+const mvnPackageProjectListener: GoalProjectListener = async (p, gi, event): Promise<void | ExecuteGoalResult> => {
     if (event === GoalProjectListenerEvent.before) {
         return spawnLog("mvn", ["package", "-DskipTests=true"], { cwd: p.baseDir, log: gi.progressLog });
     }
-}
+};
 
 export const MvnPackage: GoalProjectListenerRegistration = {
     name: "mvn-package",
     listener: mvnPackageProjectListener,
     pushTest: IsMaven,
 };
-
-export function noOpImplementation(action: string): ExecuteGoal {
-    return async (gi: GoalInvocation): Promise<ExecuteGoalResult> => {
-        const log = new DelimitedWriteProgressLogDecorator(gi.progressLog, "\n");
-        const message = `${action} requires no implementation`;
-        log.write(message);
-        await log.flush();
-        await log.close();
-        return Promise.resolve({ code: 0, message });
-    };
-}
 
 export const MavenDefaultOptions = {
     pushTest: IsMaven,

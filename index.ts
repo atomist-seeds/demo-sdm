@@ -25,18 +25,15 @@ import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { issueSupport } from "@atomist/sdm-pack-issue";
 import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import { AddDockerfile } from "./lib/commands/addDockerfile";
-import {
-    goalData,
-    goals,
-} from "./lib/machine/goals";
+import { goalsData } from "./lib/machine/goals";
 import { sdmOptions } from "./lib/machine/options";
 import { addSpringSupport } from "./lib/machine/springSupport";
 
 export const configuration = configure(async sdm => {
-    const goalSets = goalData(sdm);
+    const { goals, goalData } = goalsData();
 
     sdm.addCodeTransformCommand(AddDockerfile);
-    addSpringSupport(sdm);
+    addSpringSupport(sdm, goals);
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
     sdm.addExtensionPacks(
         buildAwareCodeTransforms({
@@ -54,5 +51,5 @@ export const configuration = configure(async sdm => {
         k8sSupport({ addCommands: true }),
     );
 
-    return goalSets;
+    return goalData;
 }, sdmOptions);

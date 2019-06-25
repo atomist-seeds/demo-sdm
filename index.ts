@@ -14,42 +14,70 @@
  * limitations under the License.
  */
 
-import { githubTeamVoter } from "@atomist/sdm";
+import {
+    and,
+    ImmaterialGoals,
+    not,
+    or,
+    ToDefaultBranch,
+} from "@atomist/sdm";
 import {
     configure,
-    githubGoalStatusSupport,
-    goalStateSupport,
-    k8sGoalSchedulingSupport,
+    IsGitHubAction,
 } from "@atomist/sdm-core";
-import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
-import { issueSupport } from "@atomist/sdm-pack-issue";
-import { k8sSupport } from "@atomist/sdm-pack-k8s";
-import { AddDockerfile } from "./lib/commands/addDockerfile";
-import { goalsData } from "./lib/machine/goals";
+import { HasDockerfile } from "@atomist/sdm-pack-docker";
+import {
+    HasSpringBootApplicationClass,
+    HasSpringBootPom,
+    IsMaven,
+} from "@atomist/sdm-pack-spring";
+import {
+    demoSdmSupport,
+    ImmaterialChange,
+} from "./lib/machine/demo";
+import { sdmGoals } from "./lib/machine/goals";
 import { sdmOptions } from "./lib/machine/options";
-import { addSpringSupport } from "./lib/machine/springSupport";
+import { IsReleaseCommit } from "./lib/machine/release";
 
 export const configuration = configure(async sdm => {
-    const { goals, goalData } = goalsData();
+    const goals = sdmGoals();
 
-    sdm.addCodeTransformCommand(AddDockerfile);
-    addSpringSupport(sdm, goals);
-    sdm.addGoalApprovalRequestVoter(githubTeamVoter());
-    sdm.addExtensionPacks(
-        buildAwareCodeTransforms({
-            buildGoal: goals.build,
-            issueCreation: {
-                issueRouter: {
-                    raiseIssue: async () => { /* raise no issues */ },
-                },
-            },
-        }),
-        issueSupport(),
-        goalStateSupport(),
-        githubGoalStatusSupport(),
-        k8sGoalSchedulingSupport(),
-        k8sSupport({ addCommands: true }),
-    );
+    demoSdmSupport(sdm, goals);
 
-    return goalData;
+    return {
+        immaterial: {
+            test: or(ImmaterialChange, IsReleaseCommit),
+            goals: ImmaterialGoals.andLock(),
+        },
+        check: {
+            test: IsMaven,
+            goals: [
+                [goals.cancel, goals.autofix],
+                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
+            ],
+        },
+        build: {
+            dependsOn: ["check"],
+            test: IsMaven,
+            goals: goals.build,
+        },
+        docker: {
+            dependsOn: ["build"],
+            test: and(IsMaven, HasDockerfile),
+            goals: goals.dockerBuild,
+        },
+        stagingDeploy: {
+            dependsOn: ["docker"],
+            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
+            goals: goals.stagingDeployment,
+        },
+        productionDeploy: {
+            dependsOn: ["stagingDeploy"],
+            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
+            goals: [
+                goals.productionDeployment,
+                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
+            ],
+        },
+    };
 }, sdmOptions);

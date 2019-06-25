@@ -31,7 +31,7 @@ import {
     TransformMavenSpringBootSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
 import { SuggestAddingDockerfile } from "../commands/addDockerfile";
-import { goals } from "./goals";
+import { DemoGoals } from "./goals";
 import { kubernetesApplicationData } from "./k8sSupport";
 import {
     MavenDefaultOptions,
@@ -46,7 +46,7 @@ import {
     executeReleaseVersion,
 } from "./release";
 
-export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
+export function addSpringSupport(sdm: SoftwareDeliveryMachine, goals: DemoGoals): void {
 
     sdm.addGeneratorCommand<SpringProjectCreationParameters>({
         name: "create-spring",

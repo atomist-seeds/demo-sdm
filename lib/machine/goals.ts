@@ -27,7 +27,6 @@ import {
     or,
     ProductionEnvironment,
     PushImpact,
-    SoftwareDeliveryMachine,
     ToDefaultBranch,
 } from "@atomist/sdm";
 import {
@@ -50,10 +49,7 @@ import {
 } from "@atomist/sdm-pack-spring";
 import { IsReleaseCommit } from "./release";
 
-/**
- * Common goal definitions used in this SDM.
- */
-export const goals = {
+const goals = {
     autofix: new Autofix(),
     version: new Version(),
     codeInspection: new AutoCodeInspection(),
@@ -92,21 +88,28 @@ export const goals = {
         completedDescription: "Incremented version",
         failedDescription: "Incrementing version failure",
     }),
+    cancel: new Cancel(),
 };
+export type DemoGoals = typeof goals;
+
+export interface DemoGoalsData {
+    goals: DemoGoals;
+    goalData: GoalData;
+}
 
 /**
  * Return goal sets and their relationships.
  */
-export function goalData(sdm: SoftwareDeliveryMachine): GoalData {
+export function goalsData(): DemoGoalsData {
     const ImmaterialChange = not(isMaterialChange({
         extensions: ["java", "html", "json", "yml", "xml", "sh", "kt", "properties"],
         files: ["Dockerfile"],
         directories: [".atomist", ".github"],
     }));
 
-    const cancel = new Cancel({ goals: [goals.autofix, goals.build, goals.dockerBuild] });
+    goals.cancel = new Cancel({ goals: [goals.autofix, goals.build, goals.dockerBuild] });
 
-    return {
+    const goalData = {
         immaterial: {
             test: or(ImmaterialChange, IsReleaseCommit),
             goals: ImmaterialGoals.andLock(),
@@ -114,7 +117,7 @@ export function goalData(sdm: SoftwareDeliveryMachine): GoalData {
         check: {
             test: IsMaven,
             goals: [
-                [cancel, goals.autofix],
+                [goals.cancel, goals.autofix],
                 [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
             ],
         },
@@ -142,4 +145,6 @@ export function goalData(sdm: SoftwareDeliveryMachine): GoalData {
             ],
         },
     };
+
+    return { goals, goalData };
 }

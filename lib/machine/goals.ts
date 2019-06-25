@@ -14,128 +14,132 @@
  * limitations under the License.
  */
 
-// GOAL Definition
-
 import {
+    and,
     AutoCodeInspection,
     Autofix,
     Cancel,
     Fingerprint,
-    goals,
     GoalWithFulfillment,
-    IndependentOfEnvironment,
+    ImmaterialGoals,
+    isMaterialChange,
+    not,
+    or,
     ProductionEnvironment,
     PushImpact,
+    SoftwareDeliveryMachine,
+    ToDefaultBranch,
 } from "@atomist/sdm";
 import {
-    Tag,
+    GoalData,
+    IsGitHubAction,
     Version,
 } from "@atomist/sdm-core";
-import { Build } from "@atomist/sdm-pack-build";
-import { DockerBuild } from "@atomist/sdm-pack-docker";
+import {
+    Build,
+} from "@atomist/sdm-pack-build";
+import {
+    DockerBuild,
+    HasDockerfile,
+} from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
+import {
+    HasSpringBootApplicationClass,
+    HasSpringBootPom,
+    IsMaven,
+} from "@atomist/sdm-pack-spring";
+import { IsReleaseCommit } from "./release";
 
-export const autofix = new Autofix();
-export const version = new Version();
-export const codeInspection = new AutoCodeInspection();
-export const fingerprint = new Fingerprint();
-export const pushImpact = new PushImpact();
+/**
+ * Common goal definitions used in this SDM.
+ */
+export const goals = {
+    autofix: new Autofix(),
+    version: new Version(),
+    codeInspection: new AutoCodeInspection(),
+    fingerprint: new Fingerprint(),
+    pushImpact: new PushImpact(),
+    build: new Build(),
+    dockerBuild: new DockerBuild(),
+    stagingDeployment: new KubernetesDeploy({ environment: "testing" }),
+    productionDeployment: new KubernetesDeploy({
+        environment: "production",
+        preApproval: true,
+    }),
+    releaseDocker: new GoalWithFulfillment({
+        uniqueName: "ReleaseDocker",
+        environment: ProductionEnvironment,
+        orderedName: "3-release-docker",
+        displayName: "release Docker image",
+        workingDescription: "Releasing Docker image",
+        completedDescription: "Released Docker image",
+        failedDescription: "Release Docker image failure",
+        isolated: true,
+    }),
+    releaseTag: new GoalWithFulfillment({
+        uniqueName: "ReleaseTag",
+        environment: ProductionEnvironment,
+        orderedName: "3-release-tag",
+        displayName: "create release tag",
+        completedDescription: "Created release tag",
+        failedDescription: "Creating release tag failure",
+    }),
+    releaseVersion: new GoalWithFulfillment({
+        uniqueName: "ReleaseVersion",
+        environment: ProductionEnvironment,
+        orderedName: "3-release-version",
+        displayName: "increment version",
+        completedDescription: "Incremented version",
+        failedDescription: "Incrementing version failure",
+    }),
+};
 
-export const build = new Build();
-export const tag = new Tag();
+/**
+ * Return goal sets and their relationships.
+ */
+export function goalData(sdm: SoftwareDeliveryMachine): GoalData {
+    const ImmaterialChange = not(isMaterialChange({
+        extensions: ["java", "html", "json", "yml", "xml", "sh", "kt", "properties"],
+        files: ["Dockerfile"],
+        directories: [".atomist", ".github"],
+    }));
 
-export const dockerBuild = new DockerBuild();
+    const cancel = new Cancel({ goals: [goals.autofix, goals.build, goals.dockerBuild] });
 
-export const stagingDeployment = new KubernetesDeploy({ environment: "testing" });
-export const productionDeployment = new KubernetesDeploy({
-    environment: "production",
-    preApproval: true,
-});
-
-export const publish = new GoalWithFulfillment({
-    uniqueName: "Publish",
-    environment: IndependentOfEnvironment,
-    orderedName: "2-publish",
-    displayName: "publish",
-    workingDescription: "Publishing",
-    completedDescription: "Published",
-    failedDescription: "Published failed",
-    isolated: true,
-});
-
-export const releaseArtifact = new GoalWithFulfillment({
-    uniqueName: "ReleaseArtifact",
-    environment: ProductionEnvironment,
-    orderedName: "3-release-artifact",
-    displayName: "release artifact",
-    workingDescription: "Releasing artifact",
-    completedDescription: "Released artifact",
-    failedDescription: "Release artifact failure",
-    isolated: true,
-});
-
-export const releaseDocker = new GoalWithFulfillment({
-    uniqueName: "ReleaseDocker",
-    environment: ProductionEnvironment,
-    orderedName: "3-release-docker",
-    displayName: "release Docker image",
-    workingDescription: "Releasing Docker image",
-    completedDescription: "Released Docker image",
-    failedDescription: "Release Docker image failure",
-    isolated: true,
-});
-
-export const releaseTag = new GoalWithFulfillment({
-    uniqueName: "ReleaseTag",
-    environment: ProductionEnvironment,
-    orderedName: "3-release-tag",
-    displayName: "create release tag",
-    completedDescription: "Created release tag",
-    failedDescription: "Creating release tag failure",
-});
-
-export const releaseDocs = new GoalWithFulfillment({
-    uniqueName: "ReleaseDocs",
-    environment: ProductionEnvironment,
-    orderedName: "3-release-docs",
-    displayName: "publish docs",
-    workingDescription: "Publishing docs",
-    completedDescription: "Published docs",
-    failedDescription: "Publishing docs failure",
-    isolated: true,
-});
-
-export const releaseVersion = new GoalWithFulfillment({
-    uniqueName: "ReleaseVersion",
-    environment: ProductionEnvironment,
-    orderedName: "3-release-version",
-    displayName: "increment version",
-    completedDescription: "Incremented version",
-    failedDescription: "Incrementing version failure",
-});
-
-export const cancel = new Cancel({ goals: [autofix, build, dockerBuild, publish] });
-
-// GOALSET Definition
-
-// Just running review and autofix
-export const checkGoals = goals("checks")
-    .plan(cancel, autofix, version, fingerprint, pushImpact)
-    .plan(codeInspection).after(autofix);
-
-// Just running the build and publish
-export const buildGoals = goals("build")
-    .plan(build).after(autofix)
-    .plan(publish).after(build);
-
-// Build including docker build
-export const dockerGoals = goals("docker build")
-    .plan(dockerBuild).after(build);
-
-// Docker build and testing and production kubernetes deploy
-export const stagingDeployGoals = goals("deploy")
-    .plan(stagingDeployment).after(dockerBuild);
-
-export const productionDeployGoals = goals("prod deploy")
-    .plan(productionDeployment).after(stagingDeployment)
-    .plan(releaseArtifact, releaseDocker, releaseDocs, releaseTag, releaseVersion).after(productionDeployment);
+    return {
+        immaterial: {
+            test: or(ImmaterialChange, IsReleaseCommit),
+            goals: ImmaterialGoals.andLock(),
+        },
+        check: {
+            test: IsMaven,
+            goals: [
+                [cancel, goals.autofix],
+                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
+            ],
+        },
+        build: {
+            dependsOn: ["check"],
+            test: IsMaven,
+            goals: goals.build,
+        },
+        docker: {
+            dependsOn: ["build"],
+            test: and(IsMaven, HasDockerfile),
+            goals: goals.dockerBuild,
+        },
+        stagingDeploy: {
+            dependsOn: ["docker"],
+            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
+            goals: goals.stagingDeployment,
+        },
+        productionDeploy: {
+            dependsOn: ["stagingDeploy"],
+            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
+            goals: [
+                goals.productionDeployment,
+                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
+            ],
+        },
+    };
+}

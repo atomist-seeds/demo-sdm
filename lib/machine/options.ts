@@ -24,7 +24,7 @@ import * as path from "path";
 /**
  * SDM options for configure function.
  */
-export const sdmOptions = {
+export const machineOptions = {
     name: "demo-sdm",
     postProcessors: [
         async (config: Configuration) => {

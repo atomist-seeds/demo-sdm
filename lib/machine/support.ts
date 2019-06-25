@@ -16,8 +16,6 @@
 
 import {
     githubTeamVoter,
-    isMaterialChange,
-    not,
     SoftwareDeliveryMachine,
 } from "@atomist/sdm";
 import {
@@ -29,16 +27,10 @@ import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { issueSupport } from "@atomist/sdm-pack-issue";
 import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import { AddDockerfile } from "../commands/addDockerfile";
-import { DemoGoals } from "./goals";
+import { MachineGoals } from "./goals";
 import { addSpringSupport } from "./springSupport";
 
-export const ImmaterialChange = not(isMaterialChange({
-    extensions: ["java", "html", "json", "yml", "xml", "sh", "kt", "properties"],
-    files: ["Dockerfile"],
-    directories: [".atomist", ".github"],
-}));
-
-export function demoSdmSupport(sdm: SoftwareDeliveryMachine, goals: DemoGoals): SoftwareDeliveryMachine {
+export function machineSupport(sdm: SoftwareDeliveryMachine, goals: MachineGoals): SoftwareDeliveryMachine {
     sdm.addCodeTransformCommand(AddDockerfile);
     addSpringSupport(sdm, goals);
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());

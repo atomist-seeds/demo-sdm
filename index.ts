@@ -31,18 +31,14 @@ import {
     HasSpringBootPom,
     IsMaven,
 } from "@atomist/sdm-pack-spring";
-import {
-    demoSdmSupport,
-    ImmaterialChange,
-} from "./lib/machine/demo";
-import { sdmGoals } from "./lib/machine/goals";
-import { sdmOptions } from "./lib/machine/options";
+import { machineGoals } from "./lib/machine/goals";
+import { machineOptions } from "./lib/machine/options";
+import { ImmaterialChange } from "./lib/machine/push";
 import { IsReleaseCommit } from "./lib/machine/release";
+import { machineSupport } from "./lib/machine/support";
 
 export const configuration = configure(async sdm => {
-    const goals = sdmGoals();
-
-    demoSdmSupport(sdm, goals);
+    machineSupport(sdm, machineGoals);
 
     return {
         immaterial: {
@@ -52,32 +48,32 @@ export const configuration = configure(async sdm => {
         check: {
             test: IsMaven,
             goals: [
-                [goals.cancel, goals.autofix],
-                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
+                [machineGoals.cancel, machineGoals.autofix],
+                [machineGoals.codeInspection, machineGoals.version, machineGoals.fingerprint, machineGoals.pushImpact],
             ],
         },
         build: {
             dependsOn: ["check"],
             test: IsMaven,
-            goals: goals.build,
+            goals: machineGoals.build,
         },
         docker: {
             dependsOn: ["build"],
             test: and(IsMaven, HasDockerfile),
-            goals: goals.dockerBuild,
+            goals: machineGoals.dockerBuild,
         },
         stagingDeploy: {
             dependsOn: ["docker"],
             test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
-            goals: goals.stagingDeployment,
+            goals: machineGoals.stagingDeployment,
         },
         productionDeploy: {
             dependsOn: ["stagingDeploy"],
             test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
             goals: [
-                goals.productionDeployment,
-                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
+                machineGoals.productionDeployment,
+                [machineGoals.releaseDocker, machineGoals.releaseTag, machineGoals.releaseVersion],
             ],
         },
     };
-}, sdmOptions);
+}, machineOptions);

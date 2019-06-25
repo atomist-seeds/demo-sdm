@@ -23,16 +23,12 @@ import {
     ProductionEnvironment,
     PushImpact,
 } from "@atomist/sdm";
-import {
-    Version,
-} from "@atomist/sdm-core";
-import {
-    Build,
-} from "@atomist/sdm-pack-build";
+import { Version } from "@atomist/sdm-core";
+import { Build } from "@atomist/sdm-pack-build";
 import { DockerBuild } from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
 
-const baseGoals = {
+export const machineGoals = {
     autofix: new Autofix(),
     version: new Version(),
     codeInspection: new AutoCodeInspection(),
@@ -73,17 +69,5 @@ const baseGoals = {
     }),
     cancel: new Cancel(),
 };
-baseGoals.cancel = new Cancel({ goals: [baseGoals.autofix, baseGoals.build, baseGoals.dockerBuild] });
-export type DemoGoals = typeof baseGoals;
-
-let fullGoals: DemoGoals;
-/**
- * Goals used by this SDM. Is this better than just exporting a const?
- */
-export function sdmGoals(): DemoGoals {
-    // Take care not to reinstantiate anything if called multiple times
-    if (!fullGoals) {
-        fullGoals = baseGoals;
-    }
-    return fullGoals;
-}
+machineGoals.cancel = new Cancel({ goals: [machineGoals.autofix, machineGoals.build, machineGoals.dockerBuild] });
+export type MachineGoals = typeof machineGoals;

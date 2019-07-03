@@ -92,6 +92,6 @@ export const SpringGoalCreator: GoalCreator<SpringGoals> = async () => {
         }),
         cancel: new Cancel({ goals: [autofix, build, dockerBuild] }),
     };
-    
+
     return goals;
 };

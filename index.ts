@@ -111,8 +111,6 @@ export const configuration = configure(async sdm => {
     };
 }, machineOptions);
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Everything below could go to sdm-core
 export type MachineGoals = Record<string, Goal | GoalWithFulfillment>;

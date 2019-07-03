@@ -49,7 +49,7 @@ import {
     executeReleaseVersion,
 } from "./release";
 
-export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (goals, sdm) => {
+export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goals) => {
 
     sdm.addGeneratorCommand<SpringProjectCreationParameters>({
         name: "create-spring",

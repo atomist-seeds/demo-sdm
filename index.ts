@@ -53,7 +53,7 @@ import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 
 export const configuration = configure(async sdm => {
 
-    const goals = await createGoals<SpringGoals>(SpringGoalCreator, SpringGoalConfigurer, sdm);
+    const goals = await createGoals<SpringGoals>(sdm, SpringGoalCreator, SpringGoalConfigurer);
 
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
 
@@ -62,7 +62,8 @@ export const configuration = configure(async sdm => {
             buildGoal: goals.build,
             issueCreation: {
                 issueRouter: {
-                    raiseIssue: async () => { /* raise no issues */ },
+                    raiseIssue: async () => { /* raise no issues */
+                    },
                 },
             },
         }),
@@ -115,15 +116,16 @@ export const configuration = configure(async sdm => {
 // Everything below could go to sdm-core
 export type MachineGoals = Record<string, Goal | GoalWithFulfillment>;
 export type GoalCreator<G extends MachineGoals> = (sdm: SoftwareDeliveryMachine) => Promise<G>;
-export type GoalConfigurer<G extends MachineGoals> = (goals: G, sdm: SoftwareDeliveryMachine) => Promise<void>;
+export type GoalConfigurer<G extends MachineGoals> = (sdm: SoftwareDeliveryMachine, goals: G) => Promise<void>;
 
-export async function createGoals<G extends MachineGoals>(creator: GoalCreator<G>,
-                                                          configurers: GoalConfigurer<G> | Array<GoalConfigurer<G>>,
-                                                          sdm: SoftwareDeliveryMachine): Promise<G> {
+export async function createGoals<G extends MachineGoals>(sdm: SoftwareDeliveryMachine,
+                                                          creator: GoalCreator<G>,
+                                                          configurers: GoalConfigurer<G> | Array<GoalConfigurer<G>> = [],
+): Promise<G> {
     const goals = await creator(sdm);
     if (!!configurers) {
         for (const configurer of toArray(configurers)) {
-            await configurer(goals, sdm);
+            await configurer(sdm, goals);
         }
     }
     return goals;

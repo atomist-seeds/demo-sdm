@@ -47,13 +47,18 @@ export interface SpringGoals extends MachineGoals {
 }
 
 export const SpringGoalCreator: GoalCreator<SpringGoals> = async () => {
-    const goals: Partial<SpringGoals> = {
-        autofix: new Autofix(),
+
+    const autofix = new Autofix();
+    const build = new Build();
+    const dockerBuild = new DockerBuild();
+
+    const goals: SpringGoals = {
+        autofix,
         version: new Version(),
         codeInspection: new AutoCodeInspection(),
         pushImpact: new PushImpact(),
-        build: new Build(),
-        dockerBuild: new DockerBuild(),
+        build,
+        dockerBuild,
         stagingDeployment: new KubernetesDeploy({ environment: "testing" }),
         productionDeployment: new KubernetesDeploy({
             environment: "production",
@@ -85,7 +90,8 @@ export const SpringGoalCreator: GoalCreator<SpringGoals> = async () => {
             completedDescription: "Incremented version",
             failedDescription: "Incrementing version failure",
         }),
+        cancel: new Cancel({ goals: [autofix, build, dockerBuild] }),
     };
-    goals.cancel = new Cancel({ goals: [goals.autofix, goals.build, goals.dockerBuild] });
-    return goals as SpringGoals;
+    
+    return goals;
 };

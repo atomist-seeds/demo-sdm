@@ -15,7 +15,6 @@
  */
 
 import { GitHubRepoRef } from "@atomist/automation-client";
-import { SoftwareDeliveryMachine } from "@atomist/sdm";
 import { isInLocalMode } from "@atomist/sdm-core";
 import { DockerOptions } from "@atomist/sdm-pack-docker";
 import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
@@ -30,8 +29,12 @@ import {
     springSupport,
     TransformMavenSpringBootSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
-import { SuggestAddingDockerfile } from "../commands/addDockerfile";
-import { MachineGoals } from "./goals";
+import { GoalConfigurer } from "../../index";
+import {
+    AddDockerfile,
+    SuggestAddingDockerfile,
+} from "../commands/addDockerfile";
+import { SpringGoals } from "./goals";
 import { kubernetesApplicationData } from "./k8sSupport";
 import {
     MavenDefaultOptions,
@@ -46,7 +49,7 @@ import {
     executeReleaseVersion,
 } from "./release";
 
-export function addSpringSupport(sdm: SoftwareDeliveryMachine, goals: MachineGoals): void {
+export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (goals, sdm) => {
 
     sdm.addGeneratorCommand<SpringProjectCreationParameters>({
         name: "create-spring",
@@ -60,6 +63,22 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, goals: MachineGoa
             ...TransformMavenSpringBootSeedToCustomProject,
         ],
     });
+
+    sdm.addChannelLinkListener(SuggestAddingDockerfile);
+    sdm.addExtensionPacks(springSupport({
+        inspectGoal: goals.codeInspection,
+        autofixGoal: goals.autofix,
+        review: {
+            cloudNative: true,
+            springStyle: true,
+        },
+        autofix: {
+            springStyle: true,
+            cloudNative: true,
+        },
+        reviewListeners: isInLocalMode() ? [] : [singleIssuePerCategoryManaging("sdm-pack-spring")],
+    }));
+    sdm.addCodeTransformCommand(AddDockerfile);
 
     goals.autofix.with(springFormat(sdm.configuration));
     goals.version.withVersioner(MavenProjectVersioner);
@@ -108,18 +127,4 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine, goals: MachineGoa
         }),
     });
 
-    sdm.addChannelLinkListener(SuggestAddingDockerfile);
-    sdm.addExtensionPacks(springSupport({
-        inspectGoal: goals.codeInspection,
-        autofixGoal: goals.autofix,
-        review: {
-            cloudNative: true,
-            springStyle: true,
-        },
-        autofix: {
-            springStyle: true,
-            cloudNative: true,
-        },
-        reviewListeners: isInLocalMode() ? [] : [singleIssuePerCategoryManaging("sdm-pack-spring")],
-    }));
-}
+};

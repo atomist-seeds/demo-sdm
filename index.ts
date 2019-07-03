@@ -16,6 +16,7 @@
 
 import {
     and,
+    githubTeamVoter,
     ImmaterialGoals,
     not,
     or,
@@ -23,22 +24,51 @@ import {
 } from "@atomist/sdm";
 import {
     configure,
+    githubGoalStatusSupport,
+    goalStateSupport,
     IsGitHubAction,
+    k8sGoalSchedulingSupport,
 } from "@atomist/sdm-core";
+import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
+import { issueSupport } from "@atomist/sdm-pack-issue";
+import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
     IsMaven,
 } from "@atomist/sdm-pack-spring";
-import { machineGoals } from "./lib/machine/goals";
+import {
+    SpringGoalCreator,
+    SpringGoals,
+} from "./lib/machine/goals";
 import { machineOptions } from "./lib/machine/options";
 import { ImmaterialChange } from "./lib/machine/push";
 import { IsReleaseCommit } from "./lib/machine/release";
-import { machineSupport } from "./lib/machine/support";
+import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 
-export const configuration = configure(async sdm => {
-    machineSupport(sdm, machineGoals);
+export const configuration = configure<SpringGoals>(async sdm => {
+
+    const goals = await sdm.createGoals(SpringGoalCreator, SpringGoalConfigurer);
+
+    sdm.addGoalApprovalRequestVoter(githubTeamVoter());
+
+    sdm.addExtensionPacks(
+        buildAwareCodeTransforms({
+            buildGoal: goals.build,
+            issueCreation: {
+                issueRouter: {
+                    raiseIssue: async () => { /* raise no issues */
+                    },
+                },
+            },
+        }),
+        issueSupport(),
+        goalStateSupport(),
+        githubGoalStatusSupport(),
+        k8sGoalSchedulingSupport(),
+        k8sSupport({ addCommands: true }),
+    );
 
     return {
         immaterial: {
@@ -48,31 +78,31 @@ export const configuration = configure(async sdm => {
         check: {
             test: IsMaven,
             goals: [
-                [machineGoals.cancel, machineGoals.autofix],
-                [machineGoals.codeInspection, machineGoals.version, machineGoals.fingerprint, machineGoals.pushImpact],
+                [goals.cancel, goals.autofix],
+                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
             ],
         },
         build: {
             dependsOn: ["check"],
             test: IsMaven,
-            goals: machineGoals.build,
+            goals: goals.build,
         },
         docker: {
             dependsOn: ["build"],
             test: and(IsMaven, HasDockerfile),
-            goals: machineGoals.dockerBuild,
+            goals: goals.dockerBuild,
         },
         stagingDeploy: {
             dependsOn: ["docker"],
             test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
-            goals: machineGoals.stagingDeployment,
+            goals: goals.stagingDeployment,
         },
         productionDeploy: {
             dependsOn: ["stagingDeploy"],
             test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
             goals: [
-                machineGoals.productionDeployment,
-                [machineGoals.releaseDocker, machineGoals.releaseTag, machineGoals.releaseVersion],
+                goals.productionDeployment,
+                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
             ],
         },
     };

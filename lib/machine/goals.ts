@@ -22,16 +22,16 @@ import {
     ProductionEnvironment,
     PushImpact,
 } from "@atomist/sdm";
-import { Version } from "@atomist/sdm-core";
+import {
+    AllGoals,
+    GoalCreator,
+    Version,
+} from "@atomist/sdm-core";
 import { Build } from "@atomist/sdm-pack-build";
 import { DockerBuild } from "@atomist/sdm-pack-docker";
 import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
-import {
-    GoalCreator,
-    MachineGoals,
-} from "../../index";
 
-export interface SpringGoals extends MachineGoals {
+export interface SpringGoals extends AllGoals {
     autofix: Autofix;
     version: Version;
     codeInspection: AutoCodeInspection;

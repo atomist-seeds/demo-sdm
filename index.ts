@@ -17,12 +17,9 @@
 import {
     and,
     githubTeamVoter,
-    Goal,
-    GoalWithFulfillment,
     ImmaterialGoals,
     not,
     or,
-    SoftwareDeliveryMachine,
     ToDefaultBranch,
 } from "@atomist/sdm";
 import {
@@ -32,7 +29,6 @@ import {
     IsGitHubAction,
     k8sGoalSchedulingSupport,
 } from "@atomist/sdm-core";
-import { toArray } from "@atomist/sdm-core/lib/util/misc/array";
 import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
 import { issueSupport } from "@atomist/sdm-pack-issue";
@@ -51,9 +47,9 @@ import { ImmaterialChange } from "./lib/machine/push";
 import { IsReleaseCommit } from "./lib/machine/release";
 import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 
-export const configuration = configure(async sdm => {
+export const configuration = configure<SpringGoals>(async sdm => {
 
-    const goals = await createGoals<SpringGoals>(sdm, SpringGoalCreator, SpringGoalConfigurer);
+    const goals = await sdm.createGoals(SpringGoalCreator, SpringGoalConfigurer);
 
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
 
@@ -111,22 +107,3 @@ export const configuration = configure(async sdm => {
         },
     };
 }, machineOptions);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Everything below could go to sdm-core
-export type MachineGoals = Record<string, Goal | GoalWithFulfillment>;
-export type GoalCreator<G extends MachineGoals> = (sdm: SoftwareDeliveryMachine) => Promise<G>;
-export type GoalConfigurer<G extends MachineGoals> = (sdm: SoftwareDeliveryMachine, goals: G) => Promise<void>;
-
-export async function createGoals<G extends MachineGoals>(sdm: SoftwareDeliveryMachine,
-                                                          creator: GoalCreator<G>,
-                                                          configurers: GoalConfigurer<G> | Array<GoalConfigurer<G>> = [],
-): Promise<G> {
-    const goals = await creator(sdm);
-    if (!!configurers) {
-        for (const configurer of toArray(configurers)) {
-            await configurer(sdm, goals);
-        }
-    }
-    return goals;
-}

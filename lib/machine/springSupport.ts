@@ -15,7 +15,10 @@
  */
 
 import { GitHubRepoRef } from "@atomist/automation-client";
-import { isInLocalMode } from "@atomist/sdm-core";
+import {
+    GoalConfigurer,
+    isInLocalMode,
+} from "@atomist/sdm-core";
 import { DockerOptions } from "@atomist/sdm-pack-docker";
 import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
 import {
@@ -29,7 +32,6 @@ import {
     springSupport,
     TransformMavenSpringBootSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
-import { GoalConfigurer } from "../../index";
 import {
     AddDockerfile,
     SuggestAddingDockerfile,

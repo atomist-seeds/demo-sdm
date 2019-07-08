@@ -21,9 +21,9 @@
     "url": "https://github.com/atomist-seeds/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "^1.6.0",
-    "@atomist/sdm": "1.6.0-master.20190702114952",
-    "@atomist/sdm-core": "1.6.0-create-goals-on-sdm.20190704153636",
+    "@atomist/automation-client": "1.6.1-master.20190705123604",
+    "@atomist/sdm": "1.6.0-master.20190706145121",
+    "@atomist/sdm-core": "1.6.0-master.20190708131856",
     "@atomist/sdm-pack-analysis": "1.1.0-master.20190429060345",
     "@atomist/sdm-pack-build": "1.0.4-master.20190320190156",
     "@atomist/sdm-pack-docker": "1.2.0-master.20190408133256",

@@ -49,7 +49,7 @@ import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 
 export const configuration = configure<SpringGoals>(async sdm => {
 
-    const goals = await sdm.createGoals(SpringGoalCreator, SpringGoalConfigurer);
+    const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
 
     sdm.addGoalApprovalRequestVoter(githubTeamVoter());
 
@@ -58,8 +58,7 @@ export const configuration = configure<SpringGoals>(async sdm => {
             buildGoal: goals.build,
             issueCreation: {
                 issueRouter: {
-                    raiseIssue: async () => { /* raise no issues */
-                    },
+                    raiseIssue: async () => { /* raise no issues */ },
                 },
             },
         }),

@@ -14,62 +14,95 @@
  * limitations under the License.
  */
 
-import { Configuration } from "@atomist/automation-client";
-import { execPromise } from "@atomist/sdm";
 import {
-    ConfigureOptions,
-    configureSdm,
-    isGitHubAction,
+    and,
+    githubTeamVoter,
+    ImmaterialGoals,
+    not,
+    or,
+    ToDefaultBranch,
+} from "@atomist/sdm";
+import {
+    configure,
+    githubGoalStatusSupport,
+    goalStateSupport,
+    IsGitHubAction,
+    k8sGoalSchedulingSupport,
 } from "@atomist/sdm-core";
-import * as appRoot from "app-root-path";
-import * as path from "path";
-import { machine } from "./lib/machine/machine";
+import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
+import { HasDockerfile } from "@atomist/sdm-pack-docker";
+import { issueSupport } from "@atomist/sdm-pack-issue";
+import { k8sSupport } from "@atomist/sdm-pack-k8s";
+import {
+    HasSpringBootApplicationClass,
+    HasSpringBootPom,
+    IsMaven,
+} from "@atomist/sdm-pack-spring";
+import {
+    SpringGoalCreator,
+    SpringGoals,
+} from "./lib/machine/goals";
+import { machineOptions } from "./lib/machine/options";
+import { ImmaterialChange } from "./lib/machine/push";
+import { IsReleaseCommit } from "./lib/machine/release";
+import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 
-const machineOptions: ConfigureOptions = {
-    requiredConfigurationValues: [
-        "sdm.docker.hub.registry",
-        "sdm.docker.hub.user",
-        "sdm.docker.hub.password",
-    ],
-};
+export const configuration = configure<SpringGoals>(async sdm => {
 
-/* tslint:disable:no-invalid-template-strings */
-export const configuration: Configuration = {
-    postProcessors: [
-        async config => {
-            if (isGitHubAction()) {
-                config.environment = "gke-int-demo";
-                config.apiKey = "${ATOMIST_API_KEY}";
-                config.token = "${ATOMIST_GITHUB_TOKEN}";
-                config.sdm = {
-                    ...config.sdm,
-                    docker: {
-                        hub: {
-                            registry: "atomist",
-                            user: "${DOCKER_USER}",
-                            password: "${DOCKER_PASSWORD}",
-                        },
-                    },
-                };
+    const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
 
-                await execPromise("git", ["config", "--global", "user.email", "\"bot@atomist.com\""]);
-                await execPromise("git", ["config", "--global", "user.name", "\"Atomist Bot\""]);
+    sdm.addGoalApprovalRequestVoter(githubTeamVoter());
 
-            }
-            return config;
+    sdm.addExtensionPacks(
+        buildAwareCodeTransforms({
+            buildGoal: goals.build,
+            issueCreation: {
+                issueRouter: {
+                    raiseIssue: async () => { /* raise no issues */ },
+                },
+            },
+        }),
+        issueSupport(),
+        goalStateSupport(),
+        githubGoalStatusSupport(),
+        k8sGoalSchedulingSupport(),
+        k8sSupport({ addCommands: true }),
+    );
+
+    return {
+        immaterial: {
+            test: or(ImmaterialChange, IsReleaseCommit),
+            goals: ImmaterialGoals.andLock(),
         },
-        configureSdm(machine, machineOptions),
-    ],
-    sdm: {
-        spring: {
-            formatJar: path.join(appRoot.path, "bin", "spring-format-0.1.0-SNAPSHOT-jar-with-dependencies.jar"),
+        check: {
+            test: IsMaven,
+            goals: [
+                [goals.cancel, goals.autofix],
+                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
+            ],
         },
         build: {
-            tag: false,
+            dependsOn: ["check"],
+            test: IsMaven,
+            goals: goals.build,
         },
-        cache: {
-            enabled: true,
-            path: "/opt/data",
+        docker: {
+            dependsOn: ["build"],
+            test: and(IsMaven, HasDockerfile),
+            goals: goals.dockerBuild,
         },
-    },
-};
+        stagingDeploy: {
+            dependsOn: ["docker"],
+            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
+            goals: goals.stagingDeployment,
+        },
+        productionDeploy: {
+            dependsOn: ["stagingDeploy"],
+            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
+            goals: [
+                goals.productionDeployment,
+                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
+            ],
+        },
+    };
+}, machineOptions);

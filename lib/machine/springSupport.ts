@@ -15,8 +15,10 @@
  */
 
 import { GitHubRepoRef } from "@atomist/automation-client";
-import { SoftwareDeliveryMachine } from "@atomist/sdm";
-import { isInLocalMode } from "@atomist/sdm-core";
+import {
+    GoalConfigurer,
+    isInLocalMode,
+} from "@atomist/sdm-core";
 import { DockerOptions } from "@atomist/sdm-pack-docker";
 import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
 import {
@@ -30,29 +32,17 @@ import {
     springSupport,
     TransformMavenSpringBootSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
-import { SuggestAddingDockerfile } from "../commands/addDockerfile";
 import {
-    autofix,
-    build,
-    codeInspection,
-    dockerBuild,
-    productionDeployment,
-    publish,
-    releaseArtifact,
-    releaseDocker,
-    releaseDocs,
-    releaseTag,
-    releaseVersion,
-    stagingDeployment,
-    version,
-} from "./goals";
+    AddDockerfile,
+    SuggestAddingDockerfile,
+} from "../commands/addDockerfile";
+import { SpringGoals } from "./goals";
 import { kubernetesApplicationData } from "./k8sSupport";
 import {
     MavenDefaultOptions,
     MavenProjectVersioner,
     MvnPackage,
     MvnVersion,
-    noOpImplementation,
 } from "./maven";
 import {
     DockerPull,
@@ -61,80 +51,7 @@ import {
     executeReleaseVersion,
 } from "./release";
 
-export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
-
-    autofix.with(springFormat(sdm.configuration));
-
-    build.with({
-        ...MavenDefaultOptions,
-        builder: mavenBuilder(),
-    });
-
-    version.withVersioner(MavenProjectVersioner);
-
-    dockerBuild.with({
-        options: {
-            ...sdm.configuration.sdm.docker.hub as DockerOptions,
-            dockerfileFinder: async () => "Dockerfile",
-            push: true,
-            // builder: "kaniko",
-        },
-    })
-        .withProjectListener(MvnVersion)
-        .withProjectListener(MvnPackage);
-
-    publish.with({
-        ...MavenDefaultOptions,
-        name: "mvn-publish",
-        goalExecutor: noOpImplementation("Publish"),
-    });
-
-    const kubernetesDeployRegistrationDemo = { applicationData: kubernetesApplicationData };
-    stagingDeployment.with(kubernetesDeployRegistrationDemo);
-    productionDeployment.with(kubernetesDeployRegistrationDemo);
-
-    releaseArtifact.with({
-        ...MavenDefaultOptions,
-        name: "mvn-release-artifact",
-        goalExecutor: noOpImplementation("ReleaseArtifact"),
-    });
-
-    releaseDocker.with({
-        ...MavenDefaultOptions,
-        name: "docker-release",
-        goalExecutor: executeReleaseDocker(
-            {
-                ...sdm.configuration.sdm.docker.hub as DockerOptions,
-            }),
-    })
-        .withProjectListener(DockerPull);
-
-    releaseTag.with({
-        ...MavenDefaultOptions,
-        name: "release-tag",
-        goalExecutor: executeReleaseTag(),
-    });
-
-    releaseDocs.with({
-        ...MavenDefaultOptions,
-        name: "release-docs",
-        goalExecutor: noOpImplementation("ReleaseDocs"),
-    });
-
-    releaseVersion.with({
-        ...MavenDefaultOptions,
-        name: "mvn-release-version",
-        goalExecutor: executeReleaseVersion(MavenProjectIdentifier, {
-            command: "mvn",
-            args: [
-                "build-helper:parse-version",
-                "versions:set",
-                // tslint:disable-next-line:max-line-length
-                "-DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}-\${parsedVersion.qualifier}",
-                "versions:commit",
-            ],
-        }),
-    });
+export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goals) => {
 
     sdm.addGeneratorCommand<SpringProjectCreationParameters>({
         name: "create-spring",
@@ -151,8 +68,8 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
 
     sdm.addChannelLinkListener(SuggestAddingDockerfile);
     sdm.addExtensionPacks(springSupport({
-        inspectGoal: codeInspection,
-        autofixGoal: autofix,
+        inspectGoal: goals.codeInspection,
+        autofixGoal: goals.autofix,
         review: {
             cloudNative: true,
             springStyle: true,
@@ -161,8 +78,55 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
             springStyle: true,
             cloudNative: true,
         },
-        reviewListeners: isInLocalMode() ? [] : [
-            singleIssuePerCategoryManaging("sdm-pack-spring"),
-        ],
+        reviewListeners: isInLocalMode() ? [] : [singleIssuePerCategoryManaging("sdm-pack-spring")],
     }));
-}
+    sdm.addCodeTransformCommand(AddDockerfile);
+
+    goals.autofix.with(springFormat(sdm.configuration));
+    goals.version.withVersioner(MavenProjectVersioner);
+    goals.build.with({
+        ...MavenDefaultOptions,
+        builder: mavenBuilder(),
+    });
+    goals.dockerBuild.with({
+        options: {
+            ...sdm.configuration.sdm.docker.hub as DockerOptions,
+            dockerfileFinder: async () => "Dockerfile",
+            push: true,
+            // builder: "kaniko",
+        },
+    })
+        .withProjectListener(MvnVersion)
+        .withProjectListener(MvnPackage);
+    goals.stagingDeployment.with({ applicationData: kubernetesApplicationData });
+    goals.productionDeployment.with({ applicationData: kubernetesApplicationData });
+    goals.releaseDocker.with({
+        ...MavenDefaultOptions,
+        name: "docker-release",
+        goalExecutor: executeReleaseDocker(
+            {
+                ...sdm.configuration.sdm.docker.hub as DockerOptions,
+            }),
+    })
+        .withProjectListener(DockerPull);
+    goals.releaseTag.with({
+        ...MavenDefaultOptions,
+        name: "release-tag",
+        goalExecutor: executeReleaseTag(),
+    });
+    goals.releaseVersion.with({
+        ...MavenDefaultOptions,
+        name: "mvn-release-version",
+        goalExecutor: executeReleaseVersion(MavenProjectIdentifier, {
+            command: "mvn",
+            args: [
+                "build-helper:parse-version",
+                "versions:set",
+                // tslint:disable-next-line:max-line-length
+                "-DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}-\${parsedVersion.qualifier}",
+                "versions:commit",
+            ],
+        }),
+    });
+
+};

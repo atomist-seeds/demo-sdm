@@ -165,8 +165,8 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
             springStyle: true,
             cloudNative: true,
         },
-        reviewListeners: isInLocalMode() ? [] : [
-            singleIssuePerCategoryManaging("sdm-pack-spring"),
-        ],
+        // reviewListeners: isInLocalMode() ? [] : [
+        //     singleIssuePerCategoryManaging("sdm-pack-spring"),
+        // ],
     }));
 }

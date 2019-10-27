@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { GitHubRepoRef } from "@atomist/automation-client";
 import {
     githubTeamVoter, goals,
     ImmaterialGoals,
@@ -39,8 +40,14 @@ import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
     IsMaven
-    MavenPerBranchDeployment,,
+    MavenPerBranchDeployment, ,
 } from "@atomist/sdm-pack-spring";
+import { executeMavenPerBranchSpringBootDeploy } from "@atomist/sdm-pack-spring/lib/java/deploy/MavenPerBranchSpringBootDeploymentGoal";
+import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
+import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsCommand } from "../aws/lambdaCommands";
+import { lambdaGenerator } from "../aws/lambdaGenerator";
+import { IsLambda } from "../aws/lambdaPushTests";
+import { lambdaSamDeployGoal, LambdaSamDeployOptions } from "../aws/lambdaSamDeployGoal";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
     build,
@@ -52,13 +59,6 @@ import {
 } from "./goals";
 import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";
-import { IsLambda } from "../aws/lambdaPushTests";
-import { lambdaSamDeployGoal, LambdaSamDeployOptions } from "../aws/lambdaSamDeployGoal";
-import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsCommand } from "../aws/lambdaCommands";
-import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
-import { lambdaGenerator } from "../aws/lambdaGenerator";
-import { GitHubRepoRef } from "@atomist/automation-client";
-import { executeMavenPerBranchSpringBootDeploy } from "@atomist/sdm-pack-spring/lib/java/deploy/MavenPerBranchSpringBootDeploymentGoal";
 
 const deployOptions: LambdaSamDeployOptions = {
     uniqueName: "lambdaSamDeploy",
@@ -77,7 +77,7 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
     const promoteLambdaToStaging = lambdaAliasGoal(defaultAwsCredentialsResolver, { alias: "staging", preApproval: false });
     const promoteLambdaToProduction = lambdaAliasGoal(defaultAwsCredentialsResolver, {
         alias: "production",
-        preApproval: true
+        preApproval: true,
     });
 
     const mavenDeploy = new MavenPerBranchDeployment();
@@ -92,11 +92,11 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
         whenPushSatisfies(IsLambda).setGoals(lambdaDeployGoal),
         whenPushSatisfies(IsLambda).setGoals(lambdaDeployGoal).setGoals(goals("staging")
             .plan(promoteLambdaToStaging)
-            .after(lambdaDeployGoal)
+            .after(lambdaDeployGoal),
         ),
         whenPushSatisfies(IsLambda).setGoals(lambdaDeployGoal).setGoals(goals("production")
             .plan(promoteLambdaToProduction)
-            .after(promoteLambdaToStaging)
+            .after(promoteLambdaToStaging),
         ),
 
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
@@ -114,7 +114,7 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
     sdm.addCommand(invokeFunctionCommand(defaultAwsCredentialsResolver));
     sdm.addCommand(listFunctionsCommand(defaultAwsCredentialsResolver));
 
-   sdm.addGeneratorCommand(lambdaGenerator({
+    sdm.addGeneratorCommand(lambdaGenerator({
        name: "newLambda",
        intent: ["create lambda", "new lambda"],
        startingPoint: GitHubRepoRef.from({

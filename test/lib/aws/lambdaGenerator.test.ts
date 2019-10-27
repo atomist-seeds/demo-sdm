@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { LambdaCreationParameters } from "../../../lib/aws/lambdaGenerator2";
 import { InMemoryProject } from "@atomist/automation-client";
-import { updateTemplate } from "../../../lib/aws/lambdaGenerator";
 import * as assert from "assert";
+import { updateTemplate } from "../../../lib/aws/lambdaGenerator";
+import { LambdaCreationParameters } from "../../../lib/aws/lambdaGenerator2";
 
 describe("Lambda generator", () => {
 
@@ -46,7 +46,7 @@ Resources:
       Handler: index.handler
       Runtime: nodejs8.10
       FunctionName: HelloWorldFunction
-      
+
       Events:
         HelloWorldApi:
           Type: Api

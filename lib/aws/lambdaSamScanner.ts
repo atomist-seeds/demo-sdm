@@ -15,8 +15,8 @@
  */
 
 import { logger, Project, ProjectFile } from "@atomist/automation-client";
-import { LambdaSamStack } from "./LambdaSamStack";
 import * as yaml from "yamljs";
+import { LambdaSamStack } from "./LambdaSamStack";
 import { FunctionInfo } from "./LambdaStack";
 
 /**

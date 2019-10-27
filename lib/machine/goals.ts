@@ -126,7 +126,7 @@ export const checkGoals = goals("checks")
 // Just running the build and publish
 export const buildGoals = goals("build")
     .plan(build).after(autofix);
-    //.plan(publish).after(build);
+    // .plan(publish).after(build);
 
 // Build including docker build
 export const dockerGoals = goals("docker build")

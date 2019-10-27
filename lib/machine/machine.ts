@@ -65,14 +65,16 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
             files: ["Dockerfile"],
             directories: [".atomist", ".github"],
         }))).setGoals(ImmaterialGoals.andLock()),
-        whenPushSatisfies(IsReleaseCommit).setGoals(ImmaterialGoals.andLock()),
+        whenPushSatisfies(IsReleaseCommit)
+            .setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
         whenPushSatisfies(IsMaven).setGoals(buildGoals),
         whenPushSatisfies(IsMaven, HasDockerfile).setGoals(dockerGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
             ToDefaultBranch, HasDockerfile).setGoals(stagingDeployGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile, not(IsGitHubAction)).setGoals(productionDeployGoals),
+            ToDefaultBranch, HasDockerfile, not(IsGitHubAction))
+            .setGoals(productionDeployGoals),
     );
 
     sdm.addCodeTransformCommand(AddDockerfile);

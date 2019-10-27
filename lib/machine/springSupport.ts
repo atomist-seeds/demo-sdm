@@ -141,7 +141,11 @@ export function addSpringSupport(sdm: SoftwareDeliveryMachine): void {
         intent: "create spring",
         description: "Create a new Java Spring Boot REST service",
         parameters: SpringProjectCreationParameterDefinitions,
-        startingPoint: GitHubRepoRef.from({ owner: "atomist-playground", repo: "spring-rest-seed", branch: "master" }),
+        startingPoint: GitHubRepoRef.from({
+            owner: "spring-team",
+            repo: "spring-rest-seed",
+            branch: "master",
+        }),
         transform: [
             ReplaceReadmeTitle,
             SetAtomistTeamInApplicationYml,

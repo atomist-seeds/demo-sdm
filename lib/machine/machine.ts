@@ -38,7 +38,8 @@ import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
-    IsMaven,
+    IsMaven
+    MavenPerBranchDeployment,,
 } from "@atomist/sdm-pack-spring";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
@@ -57,6 +58,7 @@ import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsComm
 import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
 import { lambdaGenerator } from "../aws/lambdaGenerator";
 import { GitHubRepoRef } from "@atomist/automation-client";
+import { executeMavenPerBranchSpringBootDeploy } from "@atomist/sdm-pack-spring/lib/java/deploy/MavenPerBranchSpringBootDeploymentGoal";
 
 const deployOptions: LambdaSamDeployOptions = {
     uniqueName: "lambdaSamDeploy",
@@ -70,13 +72,15 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
         configuration,
     });
 
-    const deployGoal = lambdaSamDeployGoal(deployOptions);
+    const lambdaDeployGoal = lambdaSamDeployGoal(deployOptions);
 
-    const promoteToStaging = lambdaAliasGoal(defaultAwsCredentialsResolver, { alias: "staging", preApproval: false });
-    const promoteToProduction = lambdaAliasGoal(defaultAwsCredentialsResolver, {
+    const promoteLambdaToStaging = lambdaAliasGoal(defaultAwsCredentialsResolver, { alias: "staging", preApproval: false });
+    const promoteLambdaToProduction = lambdaAliasGoal(defaultAwsCredentialsResolver, {
         alias: "production",
         preApproval: true
     });
+
+    const mavenDeploy = new MavenPerBranchDeployment();
 
     sdm.withPushRules(
         whenPushSatisfies(not(isMaterialChange({
@@ -85,24 +89,24 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
             directories: [".atomist", ".github"],
         }))).setGoals(ImmaterialGoals.andLock()),
 
-        whenPushSatisfies(IsLambda).setGoals(deployGoal),
-        whenPushSatisfies(IsLambda).setGoals(deployGoal).setGoals(goals("staging")
-            .plan(promoteToStaging)
-            .after(deployGoal)
+        whenPushSatisfies(IsLambda).setGoals(lambdaDeployGoal),
+        whenPushSatisfies(IsLambda).setGoals(lambdaDeployGoal).setGoals(goals("staging")
+            .plan(promoteLambdaToStaging)
+            .after(lambdaDeployGoal)
         ),
-        whenPushSatisfies(IsLambda).setGoals(deployGoal).setGoals(goals("production")
-            .plan(promoteToProduction)
-            .after(promoteToStaging)
+        whenPushSatisfies(IsLambda).setGoals(lambdaDeployGoal).setGoals(goals("production")
+            .plan(promoteLambdaToProduction)
+            .after(promoteLambdaToStaging)
         ),
 
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
         whenPushSatisfies(IsMaven).setGoals(buildGoals),
         whenPushSatisfies(IsMaven, HasDockerfile).setGoals(dockerGoals),
         whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile).setGoals(stagingDeployGoals),
-        whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
-            ToDefaultBranch, HasDockerfile, not(IsGitHubAction))
-            .setGoals(productionDeployGoals),
+            ToDefaultBranch).setGoals(mavenDeploy),
+        // whenPushSatisfies(HasSpringBootPom, HasSpringBootApplicationClass,
+        //     ToDefaultBranch, HasDockerfile, not(IsGitHubAction))
+        //     .setGoals(productionDeployGoals),
     );
 
     sdm.addCodeTransformCommand(AddDockerfile);

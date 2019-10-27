@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { predicatePushTest, PushTest } from "@atomist/sdm";
 
 /**

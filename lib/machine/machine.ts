@@ -56,6 +56,7 @@ import { lambdaSamDeployGoal, LambdaSamDeployOptions } from "../aws/lambdaSamDep
 import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsCommand } from "../aws/lambdaCommands";
 import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
 import { lambdaGenerator } from "../aws/lambdaGenerator";
+import { GitHubRepoRef } from "@atomist/automation-client";
 
 const deployOptions: LambdaSamDeployOptions = {
     uniqueName: "lambdaSamDeploy",
@@ -94,8 +95,6 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
             .after(promoteToStaging)
         ),
 
-        whenPushSatisfies(IsReleaseCommit)
-            .setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
         whenPushSatisfies(IsMaven).setGoals(buildGoals),
         whenPushSatisfies(IsMaven, HasDockerfile).setGoals(dockerGoals),
@@ -111,7 +110,15 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
     sdm.addCommand(invokeFunctionCommand(defaultAwsCredentialsResolver));
     sdm.addCommand(listFunctionsCommand(defaultAwsCredentialsResolver));
 
-   sdm.addGeneratorCommand(lambdaGenerator);
+   sdm.addGeneratorCommand(lambdaGenerator({
+       name: "newLambda",
+       intent: ["create lambda", "new lambda"],
+       startingPoint: GitHubRepoRef.from({
+           owner: "spring-team",
+           repo: "lambda-sam-hello-world",
+           branch: "master",
+       })},
+   ));
 
     addSpringSupport(sdm);
 

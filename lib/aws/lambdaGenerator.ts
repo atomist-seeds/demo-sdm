@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { CodeTransform, GeneratorRegistration } from "@atomist/sdm";
-import { astUtils, MicrogrammarBasedFileParser } from "@atomist/automation-client";
+import { CodeTransform, GeneratorRegistration, StartingPoint } from "@atomist/sdm";
+import { astUtils, GitHubRepoRef, MicrogrammarBasedFileParser, RemoteRepoRef } from "@atomist/automation-client";
 import { microgrammar } from "@atomist/microgrammar";
 
 // TODO take AWS regex
@@ -45,16 +45,18 @@ export interface LambdaCreationParameters {
     role: string;
 }
 
-export const lambdaGenerator: GeneratorRegistration<LambdaCreationParameters> = {
-    name: "lambdaGenerator",
-    parameters: {
-        functionName: {
-            pattern: LegalFunctionName,
+export function lambdaGenerator(opts: Pick<GeneratorRegistration<LambdaCreationParameters>, "name" | "intent" | "startingPoint">): GeneratorRegistration<LambdaCreationParameters>  {
+    return {
+        parameters: {
+            functionName: {
+                pattern: LegalFunctionName,
+            },
+            description: {},
+            role: {}, // TODO take AWS regexp
         },
-        description: {},
-        role: {}, // TODO take AWS regexp
-    },
-    transform: [
-        updateTemplate,
-    ],
-};
+        transform: [
+            updateTemplate,
+        ],
+        ...opts,
+    };
+}

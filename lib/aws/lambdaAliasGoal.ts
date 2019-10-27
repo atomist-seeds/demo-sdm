@@ -15,8 +15,17 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { goal, Goal, slackInfoMessage } from "@atomist/sdm";
-import { AwsCredentialsResolver, createOrUpdateAlias, deployedFunctionInfo, publishVersion } from "./lambdaPrimitives";
+import {
+    goal,
+    Goal,
+    slackInfoMessage,
+} from "@atomist/sdm";
+import {
+    AwsCredentialsResolver,
+    createOrUpdateAlias,
+    deployedFunctionInfo,
+    publishVersion,
+} from "./lambdaPrimitives";
 import { lambdaSamScanner } from "./lambdaSamScanner";
 
 export interface StagedDeployment {

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { logger, Project, ProjectFile } from "@atomist/automation-client";
+import {
+    logger,
+    Project,
+    ProjectFile,
+} from "@atomist/automation-client";
 import * as yaml from "yamljs";
 import { LambdaSamStack } from "./LambdaSamStack";
 import { FunctionInfo } from "./LambdaStack";

@@ -15,7 +15,11 @@
  */
 
 import { logger } from "@atomist/automation-client";
-import { CodeInspectionRegistration, CommandHandlerRegistration, SdmContext } from "@atomist/sdm";
+import {
+    CodeInspectionRegistration,
+    CommandHandlerRegistration,
+    SdmContext,
+} from "@atomist/sdm";
 import * as AWS from "aws-sdk";
 import {
     AwsCredentials,

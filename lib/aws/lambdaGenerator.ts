@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-import { astUtils, GitHubRepoRef, MicrogrammarBasedFileParser, RemoteRepoRef } from "@atomist/automation-client";
+import {
+    astUtils,
+    GitHubRepoRef,
+    MicrogrammarBasedFileParser,
+    RemoteRepoRef,
+} from "@atomist/automation-client";
 import { microgrammar } from "@atomist/microgrammar";
-import { CodeTransform, GeneratorRegistration, StartingPoint } from "@atomist/sdm";
+import {
+    CodeTransform,
+    GeneratorRegistration,
+    StartingPoint,
+} from "@atomist/sdm";
 
 // TODO take AWS regex
 const LegalFunctionName = /[A-Za-z0-9_]+/;

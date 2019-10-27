@@ -16,7 +16,12 @@
 
 import { TechnologyElement } from "@atomist/sdm-pack-analysis";
 
-import { Environment, FunctionName, Handler, Runtime } from "aws-sdk/clients/lambda";
+import {
+    Environment,
+    FunctionName,
+    Handler,
+    Runtime,
+} from "aws-sdk/clients/lambda";
 
 export interface FunctionInfo {
     /**

@@ -16,7 +16,8 @@
 
 import { GitHubRepoRef } from "@atomist/automation-client";
 import {
-    githubTeamVoter, goals,
+    githubTeamVoter,
+    goals,
     ImmaterialGoals,
     isMaterialChange,
     not,
@@ -40,14 +41,21 @@ import {
     HasSpringBootApplicationClass,
     HasSpringBootPom,
     IsMaven
-    MavenPerBranchDeployment, ,
+    MavenPerBranchDeployment,
 } from "@atomist/sdm-pack-spring";
 import { executeMavenPerBranchSpringBootDeploy } from "@atomist/sdm-pack-spring/lib/java/deploy/MavenPerBranchSpringBootDeploymentGoal";
 import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
-import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsCommand } from "../aws/lambdaCommands";
+import {
+    defaultAwsCredentialsResolver,
+    invokeFunctionCommand,
+    listFunctionsCommand,
+} from "../aws/lambdaCommands";
 import { lambdaGenerator } from "../aws/lambdaGenerator";
 import { IsLambda } from "../aws/lambdaPushTests";
-import { lambdaSamDeployGoal, LambdaSamDeployOptions } from "../aws/lambdaSamDeployGoal";
+import {
+    lambdaSamDeployGoal,
+    LambdaSamDeployOptions,
+} from "../aws/lambdaSamDeployGoal";
 import { AddDockerfile } from "../commands/addDockerfile";
 import {
     build,

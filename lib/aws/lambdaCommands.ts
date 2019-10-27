@@ -105,7 +105,6 @@ export function invokeFunctionCommand(credsResolver: AwsCredentialsResolver): Co
                     FunctionName,
                     InvokeArgs: "{}",
                 });
-                // TODO handle response and display it in a snippet
                 if (res.Status >= 200 && res.Status < 300) {
                     await ci.addressChannels(`:white_check_mark: Response was ${res.Status} from \`${FunctionName}\`. This is OK`);
                 } else {

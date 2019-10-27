@@ -55,6 +55,7 @@ import { IsLambda } from "../aws/lambdaPushTests";
 import { lambdaSamDeployGoal, LambdaSamDeployOptions } from "../aws/lambdaSamDeployGoal";
 import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsCommand } from "../aws/lambdaCommands";
 import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
+import { lambdaGenerator } from "../aws/lambdaGenerator";
 
 const deployOptions: LambdaSamDeployOptions = {
     uniqueName: "lambdaSamDeploy",
@@ -110,7 +111,7 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
     sdm.addCommand(invokeFunctionCommand(defaultAwsCredentialsResolver));
     sdm.addCommand(listFunctionsCommand(defaultAwsCredentialsResolver));
 
-    // TODO LAMBDA GENERATOR
+   sdm.addGeneratorCommand(lambdaGenerator);
 
     addSpringSupport(sdm);
 

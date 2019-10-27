@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
-import { GitHubRepoRef } from "@atomist/automation-client";
-import {
-    CodeTransform,
-    GeneratorRegistration,
-} from "@atomist/sdm";
+import { CodeTransform, GeneratorRegistration } from "@atomist/sdm";
+import { astUtils, MicrogrammarBasedFileParser } from "@atomist/automation-client";
+import { microgrammar } from "@atomist/microgrammar";
 
-// TODO this is probably wrong as it's doing our own file not SAM template
-const updateDeploymentDescriptor: CodeTransform<LambdaCreationParameters> =
+// TODO take AWS regex
+const LegalFunctionName = /[A-Za-z0-9_]+/;
+
+const FunctionNameGrammar = microgrammar({
+    _fn: "FunctionName",
+    _colon: ":",
+    functionName: LegalFunctionName,
+});
+
+export const updateTemplate: CodeTransform<LambdaCreationParameters> =
     async (p, papi) => {
-        const deployment = await p.findFile("deployment.yml");
-        await deployment.replaceAll("$FunctionName", papi.parameters.functionName);
-        await deployment.replaceAll("$Description", papi.parameters.description);
-        await deployment.replaceAll("$Role", papi.parameters.role);
+        await astUtils.doWithAllMatches(p,
+            new MicrogrammarBasedFileParser("template", "FunctionName", FunctionNameGrammar),
+            "template.yml",
+            "//FunctionName/functionName", async m => {
+                console.log(`Changing ${m.$value} to ${papi.parameters.functionName}`);
+                m.$value = papi.parameters.functionName;
+            });
+        // Update other things
     };
 
 export interface LambdaCreationParameters {
@@ -35,17 +45,16 @@ export interface LambdaCreationParameters {
     role: string;
 }
 
-export const lambdaGenerator: GeneratorRegistration<LambdaCreationParameters & { owner: string, repo: string }> = {
+export const lambdaGenerator: GeneratorRegistration<LambdaCreationParameters> = {
     name: "lambdaGenerator",
-    startingPoint: params => new GitHubRepoRef(params.owner, params.repo),
     parameters: {
-        owner: {},
-        repo: {},
-        functionName: {}, // TODO take AWS regex
+        functionName: {
+            pattern: LegalFunctionName,
+        },
         description: {},
-        role: {}, // TODO take their regexp
+        role: {}, // TODO take AWS regexp
     },
     transform: [
-        updateDeploymentDescriptor,
+        updateTemplate,
     ],
 };

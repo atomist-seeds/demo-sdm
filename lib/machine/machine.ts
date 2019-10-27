@@ -15,7 +15,7 @@
  */
 
 import {
-    githubTeamVoter,
+    githubTeamVoter, goals,
     ImmaterialGoals,
     isMaterialChange,
     not,
@@ -51,6 +51,15 @@ import {
 } from "./goals";
 import { IsReleaseCommit } from "./release";
 import { addSpringSupport } from "./springSupport";
+import { IsLambda } from "../aws/lambdaPushTests";
+import { lambdaSamDeployGoal, LambdaSamDeployOptions } from "../aws/lambdaSamDeployGoal";
+import { defaultAwsCredentialsResolver, invokeFunctionCommand, listFunctionsCommand } from "../aws/lambdaCommands";
+import { lambdaAliasGoal } from "../aws/lambdaAliasGoal";
+
+const deployOptions: LambdaSamDeployOptions = {
+    uniqueName: "lambdaSamDeploy",
+    bucketName: "com.atomist.hello",
+};
 
 export function machine(configuration: SoftwareDeliveryMachineConfiguration): SoftwareDeliveryMachine {
 
@@ -59,12 +68,31 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
         configuration,
     });
 
+    const deployGoal = lambdaSamDeployGoal(deployOptions);
+
+    const promoteToStaging = lambdaAliasGoal(defaultAwsCredentialsResolver, { alias: "staging", preApproval: false });
+    const promoteToProduction = lambdaAliasGoal(defaultAwsCredentialsResolver, {
+        alias: "production",
+        preApproval: true
+    });
+
     sdm.withPushRules(
         whenPushSatisfies(not(isMaterialChange({
-            extensions: ["java", "html", "json", "yml", "xml", "sh", "kt", "properties"],
+            extensions: ["java", "html", "js", "json", "yml", "xml", "sh", "kt", "properties"],
             files: ["Dockerfile"],
             directories: [".atomist", ".github"],
         }))).setGoals(ImmaterialGoals.andLock()),
+
+        whenPushSatisfies(IsLambda).setGoals(deployGoal),
+        whenPushSatisfies(IsLambda).setGoals(deployGoal).setGoals(goals("staging")
+            .plan(promoteToStaging)
+            .after(deployGoal)
+        ),
+        whenPushSatisfies(IsLambda).setGoals(deployGoal).setGoals(goals("production")
+            .plan(promoteToProduction)
+            .after(promoteToStaging)
+        ),
+
         whenPushSatisfies(IsReleaseCommit)
             .setGoals(ImmaterialGoals.andLock()),
         whenPushSatisfies(IsMaven).setGoals(checkGoals),
@@ -78,6 +106,11 @@ export function machine(configuration: SoftwareDeliveryMachineConfiguration): So
     );
 
     sdm.addCodeTransformCommand(AddDockerfile);
+
+    sdm.addCommand(invokeFunctionCommand(defaultAwsCredentialsResolver));
+    sdm.addCommand(listFunctionsCommand(defaultAwsCredentialsResolver));
+
+    // TODO LAMBDA GENERATOR
 
     addSpringSupport(sdm);
 

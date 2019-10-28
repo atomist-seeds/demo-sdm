@@ -15,8 +15,6 @@
  */
 
 import { Configuration } from "@atomist/automation-client";
-import { execPromise } from "@atomist/sdm";
-import { isGitHubAction } from "@atomist/sdm-core";
 import * as appRoot from "app-root-path";
 import * as _ from "lodash";
 import * as path from "path";
@@ -26,7 +24,7 @@ import * as path from "path";
  */
 export const machineOptions = {
     name: "demo-sdm",
-    postProcessors: [
+    preProcessors: [
         async (config: Configuration) => {
             _.merge(config, {
                 sdm: {
@@ -37,33 +35,12 @@ export const machineOptions = {
                         tag: false,
                     },
                     cache: {
+                        bucket: "atm-demo-sdm-goal-cache-demo",
                         enabled: true,
-                        path: "/opt/data",
+                        path: "demo-sdm-cache",
                     },
                 },
             });
-            return config;
-        },
-        async (config: Configuration) => {
-            if (isGitHubAction()) {
-                /* tslint:disable:no-invalid-template-strings */
-                config.environment = "gke-int-demo";
-                config.apiKey = "${ATOMIST_API_KEY}";
-                config.token = "${ATOMIST_GITHUB_TOKEN}";
-                config.sdm = {
-                    ...config.sdm,
-                    docker: {
-                        hub: {
-                            registry: "atomist",
-                            user: "${DOCKER_USER}",
-                            password: "${DOCKER_PASSWORD}",
-                        },
-                    },
-                };
-                /* tslint:enable:no-invalid-template-strings */
-                await execPromise("git", ["config", "--global", "user.email", "\"bot@atomist.com\""]);
-                await execPromise("git", ["config", "--global", "user.name", "\"Atomist Bot\""]);
-            }
             return config;
         },
     ],

@@ -51,12 +51,6 @@ export const configuration = configure<SpringGoals>(async sdm => {
 
     const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
 
-    sdm.configuration.sdm.cache = {
-        bucket: "atm-demo-sdm-goal-cache-demo",
-        enabled: true,
-        path: "demo-sdm-cache",
-    };
-
     sdm.addExtensionPacks(
         gcpSupport(),
         buildAwareCodeTransforms({

@@ -51,6 +51,10 @@ export const configuration = configure<SpringGoals>(async sdm => {
 
     const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
 
+    sdm.configuration.sdm.cache = {
+        enabled: true,
+    };
+
     sdm.addExtensionPacks(
         gcpSupport(),
         buildAwareCodeTransforms({
@@ -67,9 +71,7 @@ export const configuration = configure<SpringGoals>(async sdm => {
         githubGoalStatusSupport(),
         k8sGoalSchedulingSupport(),
         k8sSupport({ addCommands: true }),
-    );
-
-    sdm.configuration.cache.enabled = true;
+    );                   
 
     return {
         immaterial: {

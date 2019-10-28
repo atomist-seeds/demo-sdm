@@ -71,7 +71,7 @@ export const configuration = configure<SpringGoals>(async sdm => {
         githubGoalStatusSupport(),
         k8sGoalSchedulingSupport(),
         k8sSupport({ addCommands: true }),
-    );                   
+    );
 
     return {
         immaterial: {

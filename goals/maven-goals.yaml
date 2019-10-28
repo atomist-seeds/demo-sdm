@@ -1,6 +1,6 @@
 check:
   test:
-  - hasFile: pom.xml
+  - has_file: pom.xml
 
   goals:
   - [cancel, autofix]
@@ -10,11 +10,9 @@ check:
 
 build:
   test:
-  - hasFile: pom.xml
+  - has_file: pom.xml
 
   depends_on: check
 
   goals:
   - build
-
-

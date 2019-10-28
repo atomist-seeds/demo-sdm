@@ -14,32 +14,4 @@
  * limitations under the License.
  */
 
-import { configureYaml } from "@atomist/sdm-core";
-import {
-    SpringGoalCreator,
-    SpringGoals,
-} from "./lib/machine/goals";
-import {
-    MachineConfigurer,
-    machineOptions,
-} from "./lib/machine/options";
-import { ImmaterialChange } from "./lib/machine/push";
-import { IsReleaseCommit } from "./lib/machine/release";
-import { SpringGoalConfigurer } from "./lib/machine/springSupport";
-
-export const configuration = configureYaml<SpringGoals>(
-    [
-        "no-goals.yaml",
-        "maven-goals.yaml",
-        "docker-goals.yaml",
-    ],
-    {
-        tests: {
-            ImmaterialChange,
-            IsReleaseCommit,
-        },
-        goals: sdm => sdm.createGoals(
-            SpringGoalCreator,
-            [SpringGoalConfigurer, MachineConfigurer]),
-        options: machineOptions,
-    });
+export { configuration } from "./index-yaml";

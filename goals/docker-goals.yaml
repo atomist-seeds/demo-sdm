@@ -1,6 +1,6 @@
 docker_build:
   test:
-  - hasFile: Dockerfile
+  - has_file: Dockerfile
 
   depends_on: build
 
@@ -9,25 +9,15 @@ docker_build:
 
 ---
 
-staging_deploy:
+deploy:
   test:
   - and:
-    - hasFile: Dockerfile
+    - has_file: Dockerfile
     - ToDefaultBranch
 
   depends_on: docker_build
 
   goals:
   - stagingDeployment
-
-production_deploy:
-  test:
-  - and:
-    - hasFile: Dockerfile
-    - ToDefaultBranch
-
-  depends_on: staging_deploy
-
-  goals:
   - productionDeployment
   - [releaseDocker, releaseTag, releaseVersion]

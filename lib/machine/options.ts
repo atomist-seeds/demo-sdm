@@ -33,7 +33,7 @@ import { SpringGoals } from "./goals";
 /**
  * SDM options for configure function.
  */
-export const machineOptions: any = {
+export const options: any = {
     name: "demo-sdm",
     preProcessors: [
         async (config: Configuration) => {

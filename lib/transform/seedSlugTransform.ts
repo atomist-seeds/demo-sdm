@@ -26,7 +26,7 @@ export function replaceSeedSlug(owner: string, repo: string): CodeTransform {
             const content = await file.getContent();
             const newContent = content.replace(
                 new RegExp(
-                    `${owner}\/${name}`, "g"),
+                    `${owner}\/${repo}`, "g"),
                 `${p.id.owner}/${p.id.repo}`);
             if (content !== newContent) {
                 await file.setContent(newContent);

@@ -22,7 +22,7 @@ import * as path from "path";
 /**
  * SDM options for configure function.
  */
-export const machineOptions = {
+export const machineOptions: any = {
     name: "demo-sdm",
     preProcessors: [
         async (config: Configuration) => {

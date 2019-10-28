@@ -43,10 +43,7 @@ import {
     readSdmVersion,
 } from "@atomist/sdm-core";
 import { createRelease } from "@atomist/sdm-core/lib/util/github/ghub";
-import {
-    DockerOptions,
-    HasDockerfile,
-} from "@atomist/sdm-pack-docker";
+import { HasDockerfile } from "@atomist/sdm-pack-docker";
 
 async function loglog(log: ProgressLog, msg: string): Promise<void> {
     logger.debug(msg);
@@ -188,7 +185,7 @@ export async function dockerPullProjectListner(
 
     if (event === GoalProjectListenerEvent.before) {
         const version = await rwlcVersion(gi);
-        const dockerOptions = configurationValue<DockerOptions>("sdm.docker.hub");
+        const dockerOptions = configurationValue<{ registry: string, user: string, password: string }>("sdm.docker.hub");
         const image = dockerImage({
             registry: dockerOptions.registry,
             name: p.name,
@@ -218,7 +215,7 @@ export const DockerPull: GoalProjectListenerRegistration = {
 };
 
 export function executeReleaseDocker(
-    options?: DockerOptions,
+    options?: { registry: string, user: string, password: string },
 ): ExecuteGoal {
 
     return async (gi: GoalInvocation) => {

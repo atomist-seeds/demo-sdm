@@ -15,12 +15,7 @@
  */
 
 import { GitHubRepoRef } from "@atomist/automation-client";
-import {
-    GoalConfigurer,
-    isInLocalMode,
-} from "@atomist/sdm-core";
-import { DockerOptions } from "@atomist/sdm-pack-docker";
-import { singleIssuePerCategoryManaging } from "@atomist/sdm-pack-issue";
+import { GoalConfigurer } from "@atomist/sdm-core";
 import {
     mavenBuilder,
     MavenProjectIdentifier,
@@ -29,7 +24,6 @@ import {
     springFormat,
     SpringProjectCreationParameterDefinitions,
     SpringProjectCreationParameters,
-    springSupport,
     TransformMavenSpringBootSeedToCustomProject,
 } from "@atomist/sdm-pack-spring";
 import {
@@ -67,53 +61,47 @@ export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goa
     });
 
     sdm.addChannelLinkListener(SuggestAddingDockerfile);
-    sdm.addExtensionPacks(springSupport({
-        inspectGoal: goals.codeInspection,
-        autofixGoal: goals.autofix,
-        review: {
-            cloudNative: true,
-            springStyle: true,
-        },
-        autofix: {
-            springStyle: true,
-            cloudNative: true,
-        },
-        reviewListeners: isInLocalMode() ? [] : [singleIssuePerCategoryManaging("sdm-pack-spring")],
-    }));
+
     sdm.addCodeTransformCommand(AddDockerfile);
 
     goals.autofix.with(springFormat(sdm.configuration));
     goals.version.withVersioner(MavenProjectVersioner);
+
     goals.build.with({
         ...MavenDefaultOptions,
         builder: mavenBuilder(),
     });
+
     goals.dockerBuild.with({
-        options: {
-            ...sdm.configuration.sdm.docker.hub as DockerOptions,
-            dockerfileFinder: async () => "Dockerfile",
-            push: true,
-            // builder: "kaniko",
+        registry: {
+            ...sdm.configuration.sdm.docker.hub,
         },
+        dockerfileFinder: async () => "Dockerfile",
+        push: true,
+        // builder: "kaniko",
     })
         .withProjectListener(MvnVersion)
         .withProjectListener(MvnPackage);
+
     goals.stagingDeployment.with({ applicationData: kubernetesApplicationData });
     goals.productionDeployment.with({ applicationData: kubernetesApplicationData });
+
     goals.releaseDocker.with({
         ...MavenDefaultOptions,
         name: "docker-release",
         goalExecutor: executeReleaseDocker(
             {
-                ...sdm.configuration.sdm.docker.hub as DockerOptions,
+                ...sdm.configuration.sdm.docker.hub,
             }),
     })
         .withProjectListener(DockerPull);
+
     goals.releaseTag.with({
         ...MavenDefaultOptions,
         name: "release-tag",
         goalExecutor: executeReleaseTag(),
     });
+
     goals.releaseVersion.with({
         ...MavenDefaultOptions,
         name: "mvn-release-version",

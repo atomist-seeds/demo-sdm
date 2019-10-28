@@ -16,7 +16,6 @@
 
 import {
     and,
-    githubTeamVoter,
     ImmaterialGoals,
     not,
     or,
@@ -50,8 +49,6 @@ import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 export const configuration = configure<SpringGoals>(async sdm => {
 
     const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
-
-    sdm.addGoalApprovalRequestVoter(githubTeamVoter());
 
     sdm.addExtensionPacks(
         buildAwareCodeTransforms({

@@ -1,4 +1,4 @@
-FROM atomist/sdm-base:0.0.1
+FROM atomist/sdm-base:0.3.0
 
 # using /sdm as directory is required so that kaniko could use /opt
 RUN mkdir -p /sdm/app
@@ -21,3 +21,5 @@ COPY . .
 
 # declaring a volume will instruct kaniko to skip the directory when snapshotting
 VOLUME /sdm
+
+ENV FORMAT_JAR /sdm/app/bin/spring-format-0.1.0-SNAPSHOT-jar-with-dependencies.jar

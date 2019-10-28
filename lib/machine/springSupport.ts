@@ -15,10 +15,15 @@
  */
 
 import { GitHubRepoRef } from "@atomist/automation-client";
-import { GoalConfigurer } from "@atomist/sdm-core";
+import {
+    cachePut,
+    cacheRestore,
+    GoalConfigurer,
+} from "@atomist/sdm-core";
 import {
     mavenBuilder,
     MavenProjectIdentifier,
+    MvnVersion,
     ReplaceReadmeTitle,
     SetAtomistTeamInApplicationYml,
     springFormat,
@@ -35,8 +40,6 @@ import { kubernetesApplicationData } from "./k8sSupport";
 import {
     MavenDefaultOptions,
     MavenProjectVersioner,
-    MvnPackage,
-    MvnVersion,
 } from "./maven";
 import {
     DockerPull,
@@ -70,7 +73,14 @@ export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goa
     goals.build.with({
         ...MavenDefaultOptions,
         builder: mavenBuilder(),
-    });
+    })
+        .withProjectListener(MvnVersion)
+        .withProjectListener(cachePut({
+            entries: [
+                { classifier: "target", pattern: { directory: "target" } },
+                { classifier: "pom", pattern: { globPattern: "pom.xml" } },
+            ],
+        }));
 
     goals.dockerBuild.with({
         registry: {
@@ -80,8 +90,12 @@ export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goa
         push: true,
         // builder: "kaniko",
     })
-        .withProjectListener(MvnVersion)
-        .withProjectListener(MvnPackage);
+        .withProjectListener(cacheRestore({
+            entries: [
+                { classifier: "target" },
+                { classifier: "pom" },
+            ],
+        }));
 
     goals.stagingDeployment.with({ applicationData: kubernetesApplicationData });
     goals.productionDeployment.with({ applicationData: kubernetesApplicationData });

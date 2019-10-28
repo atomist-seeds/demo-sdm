@@ -30,6 +30,7 @@ import {
 } from "@atomist/sdm-core";
 import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
+import { gcpSupport } from "@atomist/sdm-pack-gcp";
 import { issueSupport } from "@atomist/sdm-pack-issue";
 import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import {
@@ -51,11 +52,13 @@ export const configuration = configure<SpringGoals>(async sdm => {
     const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
 
     sdm.addExtensionPacks(
+        gcpSupport(),
         buildAwareCodeTransforms({
             buildGoal: goals.build,
             issueCreation: {
                 issueRouter: {
-                    raiseIssue: async () => { /* raise no issues */ },
+                    raiseIssue: async () => { /* raise no issues */
+                    },
                 },
             },
         }),
@@ -65,6 +68,8 @@ export const configuration = configure<SpringGoals>(async sdm => {
         k8sGoalSchedulingSupport(),
         k8sSupport({ addCommands: true }),
     );
+
+    sdm.configuration.cache.enabled = true;
 
     return {
         immaterial: {

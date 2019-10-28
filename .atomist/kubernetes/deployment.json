@@ -75,8 +75,8 @@
                 "readOnly": true
               },
               {
-                "name": "data",
-                "mountPath": "/opt/data"
+                "name": "m2",
+                "mountPath": "/root/.m2"
               }
             ]
           }
@@ -96,9 +96,9 @@
             }
           },
           {
-            "name": "data",
+            "name": "m2",
             "hostPath": {
-              "path": "/mnt/disks/ssd0/data/demo-sdm",
+              "path": "/mnt/disks/ssd0/data/demo-sdm/.m2",
               "type": "DirectoryOrCreate"
             }
           }

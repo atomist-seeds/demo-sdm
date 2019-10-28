@@ -1,0 +1,8 @@
+immaterial:
+  test:
+  - or:
+    - ImmaterialChange
+    - IsReleaseCommit
+
+  goals:
+  - immaterial

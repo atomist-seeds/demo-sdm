@@ -15,9 +15,20 @@
  */
 
 import { Configuration } from "@atomist/automation-client";
+import {
+    githubGoalStatusSupport,
+    GoalConfigurer,
+    goalStateSupport,
+    k8sGoalSchedulingSupport,
+} from "@atomist/sdm-core";
+import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
+import { gcpSupport } from "@atomist/sdm-pack-gcp";
+import { issueSupport } from "@atomist/sdm-pack-issue";
+import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import * as appRoot from "app-root-path";
 import * as _ from "lodash";
 import * as path from "path";
+import { SpringGoals } from "./goals";
 
 /**
  * SDM options for configure function.
@@ -49,4 +60,24 @@ export const machineOptions: any = {
         "sdm.docker.hub.user",
         "sdm.docker.hub.password",
     ],
+};
+
+export const MachineConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goals) => {
+    sdm.addExtensionPacks(
+        gcpSupport(),
+        buildAwareCodeTransforms({
+            buildGoal: goals.build,
+            issueCreation: {
+                issueRouter: {
+                    raiseIssue: async () => { /* raise no issues */
+                    },
+                },
+            },
+        }),
+        issueSupport(),
+        goalStateSupport(),
+        githubGoalStatusSupport(),
+        k8sGoalSchedulingSupport(),
+        k8sSupport({ addCommands: true }),
+    );
 };

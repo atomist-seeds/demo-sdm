@@ -1,0 +1,20 @@
+check:
+  test:
+  - hasFile: pom.xml
+
+  goals:
+  - [cancel, autofix]
+  - [codeInspection, version, pushImpact]
+
+---
+
+build:
+  test:
+  - hasFile: pom.xml
+
+  depends_on: check
+
+  goals:
+  - build
+
+

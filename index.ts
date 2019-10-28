@@ -14,95 +14,30 @@
  * limitations under the License.
  */
 
-import {
-    and,
-    ImmaterialGoals,
-    not,
-    or,
-    ToDefaultBranch,
-} from "@atomist/sdm";
-import {
-    configure,
-    githubGoalStatusSupport,
-    goalStateSupport,
-    IsGitHubAction,
-    k8sGoalSchedulingSupport,
-} from "@atomist/sdm-core";
-import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
-import { HasDockerfile } from "@atomist/sdm-pack-docker";
-import { gcpSupport } from "@atomist/sdm-pack-gcp";
-import { issueSupport } from "@atomist/sdm-pack-issue";
-import { k8sSupport } from "@atomist/sdm-pack-k8s";
-import {
-    HasSpringBootApplicationClass,
-    HasSpringBootPom,
-    IsMaven,
-} from "@atomist/sdm-pack-spring";
+import { configureYaml } from "@atomist/sdm-core";
 import {
     SpringGoalCreator,
     SpringGoals,
 } from "./lib/machine/goals";
-import { machineOptions } from "./lib/machine/options";
+import {
+    MachineConfigurer,
+    machineOptions,
+} from "./lib/machine/options";
 import { ImmaterialChange } from "./lib/machine/push";
 import { IsReleaseCommit } from "./lib/machine/release";
 import { SpringGoalConfigurer } from "./lib/machine/springSupport";
 
-export const configuration = configure<SpringGoals>(async sdm => {
-
-    const goals = await sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer]);
-
-    sdm.addExtensionPacks(
-        gcpSupport(),
-        buildAwareCodeTransforms({
-            buildGoal: goals.build,
-            issueCreation: {
-                issueRouter: {
-                    raiseIssue: async () => { /* raise no issues */
-                    },
-                },
-            },
-        }),
-        issueSupport(),
-        goalStateSupport(),
-        githubGoalStatusSupport(),
-        k8sGoalSchedulingSupport(),
-        k8sSupport({ addCommands: true }),
-    );
-
-    return {
-        immaterial: {
-            test: or(ImmaterialChange, IsReleaseCommit),
-            goals: ImmaterialGoals.andLock(),
+export const configuration = configureYaml<SpringGoals>(
+    [
+        "no-goals.yaml",
+        "maven-goals.yaml",
+        "docker-goals.yaml",
+    ],
+    {
+        tests: {
+            ImmaterialChange,
+            IsReleaseCommit,
         },
-        check: {
-            test: IsMaven,
-            goals: [
-                [goals.cancel, goals.autofix],
-                [goals.codeInspection, goals.version, goals.fingerprint, goals.pushImpact],
-            ],
-        },
-        build: {
-            dependsOn: ["check"],
-            test: IsMaven,
-            goals: goals.build,
-        },
-        docker: {
-            dependsOn: ["build"],
-            test: and(IsMaven, HasDockerfile),
-            goals: goals.dockerBuild,
-        },
-        stagingDeploy: {
-            dependsOn: ["docker"],
-            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch),
-            goals: goals.stagingDeployment,
-        },
-        productionDeploy: {
-            dependsOn: ["stagingDeploy"],
-            test: and(HasDockerfile, HasSpringBootPom, HasSpringBootApplicationClass, ToDefaultBranch, not(IsGitHubAction)),
-            goals: [
-                goals.productionDeployment,
-                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
-            ],
-        },
-    };
-}, machineOptions);
+        goals: sdm => sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer, MachineConfigurer]),
+        options: machineOptions,
+    });

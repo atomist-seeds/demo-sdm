@@ -38,6 +38,8 @@ export const configuration = configureYaml<SpringGoals>(
             ImmaterialChange,
             IsReleaseCommit,
         },
-        goals: sdm => sdm.createGoals(SpringGoalCreator, [SpringGoalConfigurer, MachineConfigurer]),
+        goals: sdm => sdm.createGoals(
+            SpringGoalCreator,
+            [SpringGoalConfigurer, MachineConfigurer]),
         options: machineOptions,
     });

@@ -3,6 +3,7 @@ immaterial:
   - or:
     - ImmaterialChange
     - IsReleaseCommit
+    - hasRepositoryGoals
 
   goals:
   - immaterial

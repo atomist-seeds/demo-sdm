@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { configureYaml } from "@atomist/sdm-core";
+import {
+    configureYaml,
+    hasRepositoryGoals,
+} from "@atomist/sdm-core";
 import {
     SpringGoalCreator,
     SpringGoals,
@@ -35,6 +38,7 @@ export const configuration = configureYaml<SpringGoals>(
     ],
     {
         tests: {
+            hasRepositoryGoals,
             ImmaterialChange,
             IsReleaseCommit,
         },

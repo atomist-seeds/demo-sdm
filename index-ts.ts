@@ -20,7 +20,10 @@ import {
     or,
     ToDefaultBranch,
 } from "@atomist/sdm";
-import { configure } from "@atomist/sdm-core";
+import {
+    configure,
+    hasRepositoryGoals,
+} from "@atomist/sdm-core";
 import { HasDockerfile } from "@atomist/sdm-pack-docker";
 import { IsMaven } from "@atomist/sdm-pack-spring";
 import {
@@ -43,7 +46,7 @@ export const configuration = configure<SpringGoals>(async sdm => {
 
     return {
         immaterial: {
-            test: or(ImmaterialChange, IsReleaseCommit),
+            test: or(ImmaterialChange, IsReleaseCommit, hasRepositoryGoals),
             goals: ImmaterialGoals.andLock(),
         },
         check: {

@@ -41,6 +41,7 @@
     "app-root-path": "^2.2.1",
     "dateformat": "^3.0.3",
     "fs-extra": "^8.1.0",
+    "git-url-parse": "^11.1.2",
     "lodash": "^4.17.13"
   },
   "devDependencies": {

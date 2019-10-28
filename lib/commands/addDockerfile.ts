@@ -32,10 +32,16 @@ export const AddDockerfileCommandName = "AddDockerfile";
 
 export const addDockerfileTransform: CodeTransform = async (p, ctx) => {
     if (p.fileExistsSync("pom.xml")) {
+        const pomFile = await p.getFile("pom.xml");
+        const pom = await pomFile.getContent();
+
+        const newPom = pom.replace(/<build>/, `<build>
+\t\t<finalName>spring-boot</finalName>`);
+        await pomFile.setContent(newPom);
+
         return p.addFile("Dockerfile", springDockerfile)
             .then(pd => pd.addFile(".dockerignore", springDockerignore));
     }
-    logger.info("Project has no pom.xml");
     return p;
 };
 

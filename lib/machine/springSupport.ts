@@ -35,6 +35,7 @@ import {
     AddDockerfile,
     SuggestAddingDockerfile,
 } from "../commands/addDockerfile";
+import { replaceSeedSlug } from "../transform/seedSlugTransform";
 import { SpringGoals } from "./goals";
 import { kubernetesApplicationData } from "./k8sSupport";
 import {
@@ -55,8 +56,9 @@ export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goa
         intent: "create spring",
         description: "Create a new Java Spring Boot REST service",
         parameters: SpringProjectCreationParameterDefinitions,
-        startingPoint: GitHubRepoRef.from({ owner: "atomist-playground", repo: "spring-rest-seed", branch: "master" }),
+        startingPoint: GitHubRepoRef.from({ owner: "atomist-seeds", repo: "spring-rest", branch: "master" }),
         transform: [
+            replaceSeedSlug("atomist-seeds", "spring-rest"),
             ReplaceReadmeTitle,
             SetAtomistTeamInApplicationYml,
             ...TransformMavenSpringBootSeedToCustomProject,

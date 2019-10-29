@@ -68,7 +68,7 @@ export const configuration = configure<SpringGoals>(async sdm => {
         },
         deploy: {
             test: and(HasDockerfile, ToDefaultBranch),
-            depends_on: "docker_build",
+            dependsOn: "docker_build",
             goals: [
                 goals.stagingDeployment,
                 goals.productionDeployment,

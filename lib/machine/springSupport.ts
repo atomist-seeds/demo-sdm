@@ -66,7 +66,6 @@ export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goa
     });
 
     sdm.addChannelLinkListener(SuggestAddingDockerfile);
-
     sdm.addCodeTransformCommand(AddDockerfile);
 
     goals.autofix.with(springFormat(sdm.configuration));
@@ -132,5 +131,4 @@ export const SpringGoalConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goa
             ],
         }),
     });
-
 };

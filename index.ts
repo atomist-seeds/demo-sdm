@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { configuration } from "./index-yaml";
+export { configuration } from "./index-ts";

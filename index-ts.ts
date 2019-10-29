@@ -53,7 +53,7 @@ export const configuration = configure<SpringGoals>(async sdm => {
             test: IsMaven,
             goals: [
                 [goals.cancel, goals.autofix],
-                [goals.codeInspection, goals.version, goals.pushImpact],
+                [goals.version],
             ],
         },
         build: {

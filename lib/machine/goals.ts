@@ -15,12 +15,10 @@
  */
 
 import {
-    AutoCodeInspection,
     Autofix,
     Cancel,
     GoalWithFulfillment,
     ProductionEnvironment,
-    PushImpact,
 } from "@atomist/sdm";
 import {
     DeliveryGoals,
@@ -34,8 +32,6 @@ import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
 export interface SpringGoals extends DeliveryGoals {
     autofix: Autofix;
     version: Version;
-    codeInspection: AutoCodeInspection;
-    pushImpact: PushImpact;
     build: Build;
     dockerBuild: DockerBuild;
     stagingDeployment: KubernetesDeploy;
@@ -55,8 +51,6 @@ export const SpringGoalCreator: GoalCreator<SpringGoals> = async () => {
     const goals: SpringGoals = {
         autofix,
         version: new Version(),
-        codeInspection: new AutoCodeInspection(),
-        pushImpact: new PushImpact(),
         build,
         dockerBuild,
         stagingDeployment: new KubernetesDeploy({ environment: "testing" }),

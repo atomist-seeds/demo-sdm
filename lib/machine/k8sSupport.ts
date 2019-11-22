@@ -83,9 +83,9 @@ export async function kubernetesApplicationData(
  */
 export function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplication> {
     const path = `/${repo}/`;
-    const host = `play.atomist.${(ns === "testing") ? "io" : "com"}`;
+    const host = `play-${(ns === "testing") ? "t" : "p"}.sdm.io`;
     const protocol = "https";
-    const tlsSecret = host.replace(/\./g, "-").replace("play", "star");
+    const tlsSecret = `play-${ns.substring(0, 4)}-sdm-io-tls`;
     const ingressSpec = {
         metadata: {
             annotations: {

@@ -43,7 +43,7 @@ export async function kubernetesApplicationData(
     const name = goalEvent.repo.name;
     const ns = namespaceFromGoal(goalEvent);
     const port = 8080;
-    const replicas = (ns === "production") ? 3 : 1;
+    const replicas = 1;
     const ingress = ingressFromGoal(goalEvent.repo.name, ns);
     const deploymentSpecPatch = {
         spec: {

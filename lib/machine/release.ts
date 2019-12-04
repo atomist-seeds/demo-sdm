@@ -38,7 +38,7 @@ import {
     SpawnLogOptions,
 } from "@atomist/sdm";
 import {
-    createTagForStatus,
+    createGitTag,
     ProjectIdentifier,
     readSdmVersion,
 } from "@atomist/sdm-core";
@@ -270,7 +270,12 @@ export function executeReleaseTag(): ExecuteGoal {
         return configuration.sdm.projectLoader.doWithProject({ credentials, id, context, readOnly: true }, async p => {
             const version = await rwlcVersion(gi);
             const versionRelease = releaseVersion(version);
-            await createTagForStatus(id, gi.goalEvent.sha, gi.goalEvent.push.after.message, versionRelease, credentials);
+            await createGitTag({
+                project: p,
+                tag: versionRelease,
+                message: gi.goalEvent.push.after.message,
+                log: gi.progressLog,
+            });
             const commitTitle = gi.goalEvent.push.after.message.replace(/\n[\S\s]*/, "");
             const release = {
                 tag_name: versionRelease,

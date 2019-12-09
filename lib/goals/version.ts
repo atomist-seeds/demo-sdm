@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-export { configuration } from "./index-ts";
-// export { configuration } from "./index-yaml";
+import { Version } from "@atomist/sdm-core";
+
+export const version = new Version();

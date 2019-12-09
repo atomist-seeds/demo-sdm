@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-export { configuration } from "./index-ts";
-// export { configuration } from "./index-yaml";
+import { Tag } from "@atomist/sdm-core";
+
+export const tag = new Tag();

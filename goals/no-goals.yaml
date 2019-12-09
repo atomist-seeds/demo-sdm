@@ -1,9 +1,22 @@
 immaterial:
   test:
-  - or:
-    - ImmaterialChange
-    - IsReleaseCommit
-    - hasRepositoryGoals
-
+    - or:
+        - IsReleaseCommit
+        - not:
+            is_material_change:
+              directories:
+                - .atomist
+                - .github
+              extensions:
+                - java
+                - html
+                - json
+                - yml
+                - xml
+                - sh
+                - kt
+                - properties
+              files:
+                - Dockerfile
   goals:
-  - immaterial
+    - immaterial

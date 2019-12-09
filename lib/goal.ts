@@ -14,5 +14,23 @@
  * limitations under the License.
  */
 
-export { configuration } from "./index-ts";
-// export { configuration } from "./index-yaml";
+import {
+    Autofix,
+    FulfillableGoal,
+} from "@atomist/sdm";
+import {
+    DeliveryGoals,
+    Tag,
+    Version,
+} from "@atomist/sdm-core";
+import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
+
+export interface SpringGoals extends DeliveryGoals {
+    autofix: Autofix;
+    version: Version;
+    tag: Tag;
+    build: FulfillableGoal;
+    dockerBuild: FulfillableGoal;
+    stagingDeployment: KubernetesDeploy;
+    productionDeployment: KubernetesDeploy;
+}

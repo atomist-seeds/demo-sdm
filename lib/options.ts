@@ -14,37 +14,45 @@
  * limitations under the License.
  */
 
-import { Configuration } from "@atomist/automation-client";
+import {
+    Configuration,
+    GitHubRepoRef,
+} from "@atomist/automation-client";
 import {
     githubGoalStatusSupport,
     GoalConfigurer,
     goalStateSupport,
     k8sGoalSchedulingSupport,
 } from "@atomist/sdm-core";
-import { buildAwareCodeTransforms } from "@atomist/sdm-pack-build";
 import { gcpSupport } from "@atomist/sdm-pack-gcp";
 import { issueSupport } from "@atomist/sdm-pack-issue";
 import { k8sSupport } from "@atomist/sdm-pack-k8s";
-import * as appRoot from "app-root-path";
+import {
+    ReplaceReadmeTitle,
+    SetAtomistTeamInApplicationYml,
+    SpringProjectCreationParameterDefinitions,
+    SpringProjectCreationParameters,
+    TransformMavenSpringBootSeedToCustomProject,
+} from "@atomist/sdm-pack-spring";
 import * as _ from "lodash";
-import * as path from "path";
-import { SpringGoals } from "./goals";
+import {
+    AddDockerfile,
+    SuggestAddingDockerfile,
+} from "./commands/addDockerfile";
+import { SpringGoals } from "./goal";
+import { replaceSeedSlug } from "./transform/seedSlugTransform";
+
+const sdmName = "demo-sdm";
 
 /**
  * SDM options for configure function.
  */
 export const options: any = {
-    name: "demo-sdm",
+    name: sdmName,
     preProcessors: [
         async (config: Configuration) => {
             _.merge(config, {
                 sdm: {
-                    spring: {
-                        formatJar: path.join(appRoot.path, "bin", "spring-format-0.1.0-SNAPSHOT-jar-with-dependencies.jar"),
-                    },
-                    build: {
-                        tag: false,
-                    },
                     cache: {
                         bucket: "atm-demo-sdm-goal-cache-demo",
                         enabled: true,
@@ -55,29 +63,43 @@ export const options: any = {
             return config;
         },
     ],
-    requiredConfigurationValues: [
-        "sdm.docker.hub.registry",
-        "sdm.docker.hub.user",
-        "sdm.docker.hub.password",
-    ],
 };
 
 export const MachineConfigurer: GoalConfigurer<SpringGoals> = async (sdm, goals) => {
     sdm.addExtensionPacks(
         gcpSupport(),
-        buildAwareCodeTransforms({
-            buildGoal: goals.build,
-            issueCreation: {
-                issueRouter: {
-                    raiseIssue: async () => { /* raise no issues */
-                    },
-                },
+        githubGoalStatusSupport(),
+        goalStateSupport({
+            cancellation: {
+                enabled: true,
             },
         }),
-        issueSupport(),
-        goalStateSupport(),
-        githubGoalStatusSupport(),
+        issueSupport({
+            labelIssuesOnDeployment: true,
+            closeCodeInspectionIssuesOnBranchDeletion: {
+                enabled: true,
+                source: sdmName,
+            },
+        }),
         k8sGoalSchedulingSupport(),
         k8sSupport({ addCommands: true }),
     );
+
+    sdm.addGeneratorCommand<SpringProjectCreationParameters>({
+        name: "create-spring",
+        intent: "create spring",
+        description: "Create a new Java Spring Boot REST service",
+        parameters: SpringProjectCreationParameterDefinitions,
+        startingPoint: GitHubRepoRef.from({ owner: "atomist-seeds", repo: "spring-rest", branch: "master" }),
+        transform: [
+            replaceSeedSlug("atomist-seeds", "spring-rest"),
+            ReplaceReadmeTitle,
+            SetAtomistTeamInApplicationYml,
+            ...TransformMavenSpringBootSeedToCustomProject,
+        ],
+    });
+
+    sdm.addChannelLinkListener(SuggestAddingDockerfile);
+    sdm.addCodeTransformCommand(AddDockerfile);
+
 };

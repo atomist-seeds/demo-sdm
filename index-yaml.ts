@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-import {
-    configureYaml,
-    hasRepositoryGoals,
-} from "@atomist/sdm-core";
-import {
-    SpringGoalCreator,
-    SpringGoals,
-} from "./lib/machine/goals";
+import { configureYaml } from "@atomist/sdm-core";
+import { IsReleaseCommit } from "@atomist/sdm-pack-version";
+import { SpringGoals } from "./lib/goal";
+import { SpringGoalConfigurer } from "./lib/goalConfigurer";
+import { SpringGoalCreator } from "./lib/goalCreator";
 import {
     MachineConfigurer,
     options,
-} from "./lib/machine/options";
-import { ImmaterialChange } from "./lib/machine/push";
-import { IsReleaseCommit } from "./lib/machine/release";
-import { SpringGoalConfigurer } from "./lib/machine/springSupport";
+} from "./lib/options";
+import { ImmaterialChange } from "./lib/push";
 
 export const configuration = configureYaml<SpringGoals>(
     [
@@ -38,11 +33,11 @@ export const configuration = configureYaml<SpringGoals>(
     ],
     {
         tests: {
-            hasRepositoryGoals,
             ImmaterialChange,
             IsReleaseCommit,
         },
         goals: SpringGoalCreator,
         configurers: [SpringGoalConfigurer, MachineConfigurer],
         options,
-    });
+    },
+);

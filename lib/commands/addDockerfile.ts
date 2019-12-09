@@ -26,7 +26,6 @@ import {
     formatDate,
     slackQuestionMessage,
 } from "@atomist/sdm";
-import { BuildAwareMarker } from "@atomist/sdm-pack-build";
 
 export const AddDockerfileCommandName = "AddDockerfile";
 
@@ -53,7 +52,7 @@ export const AddDockerfile: CodeTransformRegistration = {
         const bc: editModes.BranchCommit = {
             message: `Add Dockerfile
 
-${BuildAwareMarker} ${editModes.AutoMergeMode.SuccessfulCheck} ${editModes.AutoMergeMethod.Merge}`,
+${editModes.AutoMergeMode.SuccessfulCheck} ${editModes.AutoMergeMethod.Merge}`,
             branch: `add-dockerfile-${formatDate()}`,
         };
         return bc;

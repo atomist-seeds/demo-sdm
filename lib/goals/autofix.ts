@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-export { configuration } from "./index-ts";
-// export { configuration } from "./index-yaml";
+import { Autofix } from "@atomist/sdm";
+
+export const autofix = new Autofix();

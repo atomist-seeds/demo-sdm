@@ -15,64 +15,57 @@
  */
 
 import {
-    and,
+    hasFile,
     ImmaterialGoals,
     or,
     ToDefaultBranch,
 } from "@atomist/sdm";
-import {
-    configure,
-    hasRepositoryGoals,
-} from "@atomist/sdm-core";
-import { HasDockerfile } from "@atomist/sdm-pack-docker";
-import { IsMaven } from "@atomist/sdm-pack-spring";
-import {
-    SpringGoalCreator,
-    SpringGoals,
-} from "./lib/machine/goals";
+import { configure } from "@atomist/sdm-core";
+import { IsReleaseCommit } from "@atomist/sdm-pack-version";
+import { SpringGoals } from "./lib/goal";
+import { SpringGoalConfigurer } from "./lib/goalConfigurer";
+import { SpringGoalCreator } from "./lib/goalCreator";
 import {
     MachineConfigurer,
     options,
-} from "./lib/machine/options";
-import { ImmaterialChange } from "./lib/machine/push";
-import { IsReleaseCommit } from "./lib/machine/release";
-import { SpringGoalConfigurer } from "./lib/machine/springSupport";
+} from "./lib/options";
+import { ImmaterialChange } from "./lib/push";
 
 export const configuration = configure<SpringGoals>(async sdm => {
 
     const goals = await sdm.createGoals(
         SpringGoalCreator,
-        [SpringGoalConfigurer, MachineConfigurer]);
+        [SpringGoalConfigurer, MachineConfigurer],
+    );
 
     return {
         immaterial: {
-            test: or(ImmaterialChange, IsReleaseCommit, hasRepositoryGoals),
+            test: or(ImmaterialChange, IsReleaseCommit),
             goals: ImmaterialGoals.andLock(),
         },
         check: {
-            test: IsMaven,
+            test: hasFile("pom.xml"),
             goals: [
-                [goals.cancel, goals.autofix],
-                [goals.version],
+                goals.autofix,
+                goals.version,
             ],
         },
         build: {
-            test: IsMaven,
+            test: hasFile("pom.xml"),
             dependsOn: "check",
             goals: goals.build,
         },
         docker_build: {
-            test: HasDockerfile,
+            test: hasFile("Dockerfile"),
             dependsOn: "build",
             goals: goals.dockerBuild,
         },
         deploy: {
-            test: and(HasDockerfile, ToDefaultBranch),
+            test: [hasFile("Dockerfile"), ToDefaultBranch],
             dependsOn: "docker_build",
             goals: [
                 goals.stagingDeployment,
                 goals.productionDeployment,
-                [goals.releaseDocker, goals.releaseTag, goals.releaseVersion],
             ],
         },
     };

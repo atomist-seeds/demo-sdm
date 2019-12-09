@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-export { configuration } from "./index-ts";
-// export { configuration } from "./index-yaml";
+import { KubernetesDeploy } from "@atomist/sdm-pack-k8s";
+
+export const stagingDeployment = new KubernetesDeploy({ environment: "testing" });

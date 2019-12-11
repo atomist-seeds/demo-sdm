@@ -25,10 +25,13 @@ rules:
   - apiGroups: [""]
     resources: ["namespaces", "pods", "secrets", "serviceaccounts", "services"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["apps", "extensions"]
     resources: ["deployments"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: ["extensions"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
     resources: ["ingresses"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["rbac.authorization.k8s.io"]
@@ -78,6 +81,15 @@ spec:
         app.kubernetes.io/managed-by: atomist
         app.kubernetes.io/version: "1"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: sandbox.gke.io/runtime
+                    operator: In
+                    values:
+                      - gvisor
       containers:
         - name: demo-sdm
           image: atomist/demo-sdm:1.0.0
@@ -86,6 +98,8 @@ spec:
               value: /opt/atm/client.config.json
             - name: ATOMIST_GOAL_SCHEDULER
               value: kubernetes
+            - name: HOME
+              value: /home/atomist
             - name: TMPDIR
               value: /tmp
           ports:
@@ -140,6 +154,9 @@ spec:
             - git config --global user.email 'bot@atomist.com' && git config --global user.name 'Atomist Bot'
           command:
             - /bin/sh
+          env:
+            - name: HOME
+              value: /home/atomist
           image: atomist/sdm-base:0.4.0-20191204153918
           name: atomist-home-git
           securityContext:
@@ -155,6 +172,11 @@ spec:
       securityContext:
         fsGroup: 2866
       serviceAccountName: demo-sdm
+      tolerations:
+        - effect: NoSchedule
+          key: sandbox.gke.io/runtime
+          operator: Equal
+          value: gvisor
       volumes:
         - name: demo-sdm
           secret:

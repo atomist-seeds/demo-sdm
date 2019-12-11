@@ -2,6 +2,23 @@
   "spec": {
     "template": {
       "spec": {
+        "affinity": {
+          "nodeAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms:": [
+                {
+                  "matchExpressions": [
+                    {
+                      "key": "sandbox.gke.io/runtime",
+                      "operator": "In",
+                      "values": ["gvisor"]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
         "containers": [
           {
             "env": [
@@ -93,6 +110,14 @@
         "securityContext": {
           "fsGroup": 2866
         },
+        "tolerations": [
+          {
+            "effect": "NoSchedule",
+            "key": "sandbox.gke.io/runtime",
+            "operator": "Equal",
+            "value": "gvisor"
+          }
+        ],
         "volumes": [
           {
             "name": "demo-sdm",

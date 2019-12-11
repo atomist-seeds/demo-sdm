@@ -68,7 +68,7 @@ build:
               mvn --batch-mode -Dmaven.repo.local=.m2 versions:set -DnewVersion="$v" versions:commit &&
               printf '{"SdmGoal":{"description":"Versioned `%s`","push":{"after":{"version":"%s"}}}}' "$v" "$v" > "$ATOMIST_RESULT"
           command:
-            - bash
+            - /bin/bash
           image: maven:3.6.3-jdk-8
           name: maven-version
           resources:
@@ -96,7 +96,7 @@ build:
             - -c
             - mvn --batch-mode -Dmaven.repo.local=.m2 --show-version package
           command:
-            - bash
+            - /bin/sh
           image: maven:3.6.3-jdk-8
           name: maven-build
           resources:
@@ -153,7 +153,10 @@ docker_build:
         - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
     - containers:
         - args:
+            - -c
             - echo '{"SdmGoal":{"push":{"after":{"images":[{"imageName":"gcr.io/kubernetes-sdm-demo/${push.repo.name}:${push.after.version}"}]}}}}' > "$ATOMIST_RESULT"
+          command:
+            - /bin/sh
           image: busybox:1.31.1-uclibc
           name: docker-image-link
           resources:

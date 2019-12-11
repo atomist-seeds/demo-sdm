@@ -62,10 +62,14 @@ metadata:
     app.kubernetes.io/managed-by: atomist
 spec:
   replicas: 1
-  revisionHistoryLimit: 5
   selector:
     matchLabels:
       app.kubernetes.io/name: demo-sdm
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -74,22 +78,16 @@ spec:
         app.kubernetes.io/managed-by: atomist
         app.kubernetes.io/version: "1"
     spec:
-      serviceAccountName: demo-sdm
       containers:
         - name: demo-sdm
           image: atomist/demo-sdm:1.0.0
-          imagePullPolicy: IfNotPresent
           env:
-            - name: ATOMIST_POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: FORCE_COLOR
-              value: "1"
-            - name: ATOMIST_GOAL_SCHEDULER
-              value: kubernetes
             - name: ATOMIST_CONFIG_PATH
               value: /opt/atm/client.config.json
+            - name: ATOMIST_GOAL_SCHEDULER
+              value: kubernetes
+            - name: TMPDIR
+              value: /tmp
           ports:
             - name: http
               containerPort: 2866
@@ -116,33 +114,53 @@ spec:
             failureThreshold: 3
           resources:
             limits:
-              cpu: 2000m
-              memory: 3000Mi
+              cpu: 1000m
+              memory: 2048Mi
             requests:
               cpu: 500m
-              memory: 1000Mi
+              memory: 1024Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true,
+            runAsGroup: 2866,
+            runAsNonRoot: true,
+            runAsUser: 2866
           volumeMounts:
-            - name: docker-sock
-              mountPath: /var/run/docker.sock
             - name: demo-sdm
               mountPath: /opt/atm
               readOnly: true
-            - name: data
-              mountPath: /opt/data
+            - name: atomist-home
+              mountPath: /home/atomist
+            - name: sdm-tmp
+              mountPath: /tmp
+      initContainers:
+        - args:
+            - -c
+            - git config --global user.email 'bot@atomist.com' && git config --global user.name 'Atomist Bot'
+          command:
+            - /bin/sh
+          image: atomist/sdm-base:0.4.0-20191204153918
+          name: atomist-home-git
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true,
+            runAsGroup: 2866,
+            runAsNonRoot: true,
+            runAsUser: 2866
+          volumeMounts:
+            - name: atomist-home
+              mountPath: /home/atomist
+      securityContext:
+        fsGroup: 2866
+      serviceAccountName: demo-sdm
       volumes:
-        - name: docker-sock
-          hostPath:
-            path: /var/run/docker.sock
         - name: demo-sdm
           secret:
-            defaultMode: 256
+            defaultMode: 288
             secretName: demo-sdm
-        - name: data
-          hostPath:
-            path: /mnt/disks/ssd0/data/demo-sdm
-            type: DirectoryOrCreate
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
+        - emptyDir: {}
+          name: "atomist-home"
+        - emptyDir: {}
+          name: "sdm-tmp"

@@ -15,14 +15,13 @@
       "esnext.asynciterable"
     ],
     "strict": true,
-    "strictNullChecks": false,
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["index.ts", "bin/*.ts", "lib/**/*.ts", "test/**/*.ts"],
+  "include": ["config.ts", "index.ts", "commands/**/*.ts", "goals/*.ts"],
   "exclude": [".#*"],
   "compileOnSave": true,
   "buildOnSave": false,

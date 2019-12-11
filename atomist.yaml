@@ -1,0 +1,178 @@
+#
+#  Copyright © 2019 Atomist, Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+item:
+  name: "@atomist/demo-sdm"
+  version: 0.1.0
+  author: Atomist
+  description: Atomist SDM for demos
+  category:
+    - CI/CD
+    - demo
+  license: Apache-2.0
+  homepage: https://github.com/atomist-seeds/demo-sdm
+  repository: https://github.com/atomist-seeds/demo-sdm.git
+  icon: https://images.atomist.com/logo/atomist-color-mark-medium.png
+---
+configuration:
+  logging:
+    level: debug
+  sdm:
+    cache:
+      enabled: true
+    goal:
+      timeout: 1200000
+---
+immaterial:
+  test:
+    - not:
+        is_material_change:
+          directories:
+            - .atomist
+            - .github
+          extensions:
+            - java
+            - html
+            - json
+            - yml
+            - xml
+            - sh
+            - kt
+            - properties
+          files:
+            - Dockerfile
+  goals: lock
+
+build:
+  test:
+    - has_file: pom.xml
+  goals:
+    - containers:
+        - args:
+            - -c
+            - >-
+              v=$(mvn --batch-mode -Dmaven.repo.local=.m2 help:evaluate -Dexpression=project.version -q -DforceStdout | cut -d- -f1)-$(date -u +%Y%m%d%H%M%S) &&
+              mvn --batch-mode -Dmaven.repo.local=.m2 versions:set -DnewVersion="$v" versions:commit &&
+              printf '{"SdmGoal":{"description":"Versioned `%s`","push":{"after":{"version":"%s"}}}}' "$v" "$v" > "$ATOMIST_RESULT"
+          command:
+            - bash
+          image: maven:3.6.3-jdk-8
+          name: maven-version
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 1024Mi
+            securityContext:
+              runAsGroup: 0
+              runAsNonRoot: false
+              runAsUser: 0
+      input:
+        - ${push.repo.owner}/m2
+      output:
+        - classifier: ${push.repo.owner}/m2
+          pattern:
+            directory: .m2
+        - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+          pattern:
+            globPattern: pom.xml
+    - containers:
+        - args:
+            - -c
+            - mvn --batch-mode -Dmaven.repo.local=.m2 --show-version package
+          command:
+            - bash
+          image: maven:3.6.3-jdk-8
+          name: maven-build
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 1024Mi
+            securityContext:
+              runAsGroup: 0
+              runAsNonRoot: false
+              runAsUser: 0
+      input:
+        - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+        - ${push.repo.owner}/m2
+      output:
+        - classifier: ${push.repo.owner}/m2
+          pattern:
+            directory: .m2
+        - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+          pattern:
+            directory: target
+    - tag
+
+docker_build:
+  test:
+    - has_file: Dockerfile
+  depends_on: build
+  goals:
+    - containers:
+        - args:
+            - --context=dir:///atm/home
+            - --destination=gcr.io/kubernetes-sdm-demo/${push.repo.name}:${push.after.version}
+            - --dockerfile=Dockerfile
+            - --cache=true
+            - --cache-repo=gcr.io/kubernetes-sdm-demo/layer-cache
+            - --force
+          image: gcr.io/kaniko-project/executor:latest
+          name: kaniko
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+            requests:
+              cpu: 100m
+              memory: 1024Mi
+          securityContext:
+            runAsGroup: 0
+            runAsNonRoot: false
+            runAsUser: 0
+      input:
+        - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+        - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+    - containers:
+        - args:
+            - echo '{"SdmGoal":{"push":{"after":{"images":[{"imageName":"gcr.io/kubernetes-sdm-demo/${push.repo.name}:${push.after.version}"}]}}}}' > "$ATOMIST_RESULT"
+          image: busybox:1.31.1-uclibc
+          name: docker-image-link
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            runAsGroup: 65534
+            runAsNonRoot: true
+            runAsUser: 65534
+
+deploy:
+  test:
+    - has_file: Dockerfile
+    - is_default_branch
+  depends_on: docker_build
+  goals:
+    - stagingDeployment
+    - productionDeployment

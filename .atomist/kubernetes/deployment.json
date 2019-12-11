@@ -5,7 +5,7 @@
         "affinity": {
           "nodeAffinity": {
             "requiredDuringSchedulingIgnoredDuringExecution": {
-              "nodeSelectorTerms:": [
+              "nodeSelectorTerms": [
                 {
                   "matchExpressions": [
                     {

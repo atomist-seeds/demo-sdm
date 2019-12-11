@@ -31,6 +31,10 @@
                 "value": "kubernetes"
               },
               {
+                "name": "HOME",
+                "value": "/home/atomist"
+              },
+              {
                 "name": "TMPDIR",
                 "value": "/tmp"
               }
@@ -88,6 +92,12 @@
               "git config --global user.email 'bot@atomist.com' && git config --global user.name 'Atomist Bot'"
             ],
             "command": ["/bin/sh", "-c"],
+            "env": [
+              {
+                "name": "HOME",
+                "value": "/home/atomist"
+              }
+            ],
             "image": "atomist/sdm-base:0.4.0-20191204153918",
             "name": "atomist-home-git",
             "securityContext": {

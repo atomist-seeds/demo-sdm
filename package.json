@@ -23,7 +23,7 @@
   "dependencies": {
     "@atomist/automation-client": "^2.0.0-master.20191210214700",
     "@atomist/sdm": "^2.0.0-master.20191210185902",
-    "@atomist/sdm-core": "^2.0.0-master.20191211161817",
+    "@atomist/sdm-core": "^2.0.0-master.20191211181917",
     "@atomist/sdm-pack-gcp": "0.1.0-master.20191206224938",
     "@atomist/sdm-pack-k8s": "1.10.3-master.20191017202233",
     "@atomist/slack-messages": "^1.1.1",

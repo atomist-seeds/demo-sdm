@@ -78,10 +78,10 @@ build:
             requests:
               cpu: 100m
               memory: 1024Mi
-            securityContext:
-              runAsGroup: 0
-              runAsNonRoot: false
-              runAsUser: 0
+          securityContext:
+            runAsGroup: 0
+            runAsNonRoot: false
+            runAsUser: 0
       input:
         - ${push.repo.owner}/m2
       output:
@@ -106,10 +106,10 @@ build:
             requests:
               cpu: 100m
               memory: 1024Mi
-            securityContext:
-              runAsGroup: 0
-              runAsNonRoot: false
-              runAsUser: 0
+          securityContext:
+            runAsGroup: 0
+            runAsNonRoot: false
+            runAsUser: 0
       input:
         - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
         - ${push.repo.owner}/m2

@@ -21,18 +21,17 @@
     "url": "https://github.com/atomist-seeds/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "^2.0.0-master.20191213133922",
-    "@atomist/sdm": "^2.0.0-master.20191212173159",
-    "@atomist/sdm-core": "^2.0.0-master.20191212171845",
+    "@atomist/automation-client": "2.0.0-master.20191213160252",
+    "@atomist/sdm": "2.0.0-sdm-mutations.20191213145220",
+    "@atomist/sdm-core": "2.0.0-sdm-mutations.20191213161329",
     "@atomist/sdm-pack-gcp": "0.1.0-master.20191206224938",
-    "@atomist/sdm-pack-k8s": "^2.0.0-master.20191213151809",
+    "@atomist/sdm-pack-k8s": "2.0.0-master.20191213151809",
     "@atomist/slack-messages": "^1.1.1",
     "@types/lodash": "^4.14.136",
     "@types/node": "^12.6.2",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "@atomist/sdm-local": "1.2.2-master.20191011215150",
     "@types/mocha": "^5.2.7",
     "@types/power-assert": "^1.5.0",
     "espower-typescript": "^9.0.2",

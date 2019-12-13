@@ -30,10 +30,12 @@ import {
 } from "@atomist/sdm-pack-k8s";
 import * as _ from "lodash";
 
-export const stagingDeployment: GoalMaker = async () => new KubernetesDeploy({ environment: "testing" })
-    .with({ applicationData: kubernetesApplicationData });
-export const productionDeployment: GoalMaker = async () => new KubernetesDeploy({ environment: "production", preApproval: true })
-    .with({ applicationData: kubernetesApplicationData });
+export const stagingDeployment: GoalMaker = async () =>
+    new KubernetesDeploy({ displayName: "staging deployment", environment: "testing" })
+        .with({ applicationData: kubernetesApplicationData });
+export const productionDeployment: GoalMaker = async () =>
+    new KubernetesDeploy({ displayName: "production deployment", environment: "production", preApproval: true })
+        .with({ applicationData: kubernetesApplicationData });
 
 /**
  * Augment default Kubernetes application with Spring demo specific

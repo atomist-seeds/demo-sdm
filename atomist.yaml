@@ -86,7 +86,7 @@ rules:
               runAsNonRoot: false
               runAsUser: 0
         input:
-          - ${push.repo.owner}/m2
+          - classifier: ${push.repo.owner}/m2
         output:
           - classifier: ${push.repo.owner}/m2
             pattern:
@@ -115,8 +115,8 @@ rules:
               runAsNonRoot: false
               runAsUser: 0
         input:
-          - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
-          - ${push.repo.owner}/m2
+          - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+          - classifier: ${push.repo.owner}/m2
         output:
           - classifier: ${push.repo.owner}/m2
             pattern:
@@ -154,8 +154,8 @@ rules:
               runAsNonRoot: false
               runAsUser: 0
         input:
-          - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
-          - ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+          - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+          - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
       - name: image link
         containers:
           - args:

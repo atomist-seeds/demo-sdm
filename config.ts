@@ -69,12 +69,11 @@ export const DemoSupport = async (cfg: Configuration) => {
         };
         return _.defaultsDeep(cfg, defaultCfg);
     }
-}
-    ;
+};
 
 function k8sGoalFulfillingSchedulingSupport(): ExtensionPack {
     return {
-        ...metadata("k8s-goal-scheduling"),
+        ...metadata("k8s-goal-fulfilling-scheduling"),
         configure: sdm => {
             sdm.configuration.sdm.goalScheduler = [new KubernetesFulfillmentGoalScheduler()];
             sdm.addGoalCompletionListener(new KubernetesJobDeletingGoalCompletionListenerFactory(sdm).create());

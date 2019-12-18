@@ -16,11 +16,17 @@
 
 import { Configuration } from "@atomist/automation-client";
 import {
+    ExtensionPack,
+    metadata,
+} from "@atomist/sdm";
+import {
     githubGoalStatusSupport,
     goalStateSupport,
-    k8sGoalSchedulingSupport,
+    // k8sGoalSchedulingSupport,
 } from "@atomist/sdm-core";
 import { runningInK8s } from "@atomist/sdm-core/lib/goal/container/util";
+import { KubernetesFulfillmentGoalScheduler } from "@atomist/sdm-core/lib/pack/k8s/KubernetesFulfillmentGoalScheduler";
+import { KubernetesJobDeletingGoalCompletionListenerFactory } from "@atomist/sdm-core/lib/pack/k8s/KubernetesJobDeletingGoalCompletionListener";
 import { gcpSupport } from "@atomist/sdm-pack-gcp";
 import { k8sSupport } from "@atomist/sdm-pack-k8s";
 import * as _ from "lodash";
@@ -46,7 +52,8 @@ export const DemoSupport = async (cfg: Configuration) => {
                             enabled: true,
                         },
                     }),
-                    k8sGoalSchedulingSupport(),
+                    // k8sGoalSchedulingSupport(),
+                    k8sGoalFulfillingSchedulingSupport(),
                     k8sSupport({ addCommands: true }),
                 ],
             },
@@ -62,4 +69,15 @@ export const DemoSupport = async (cfg: Configuration) => {
         };
         return _.defaultsDeep(cfg, defaultCfg);
     }
-};
+}
+    ;
+
+function k8sGoalFulfillingSchedulingSupport(): ExtensionPack {
+    return {
+        ...metadata("k8s-goal-scheduling"),
+        configure: sdm => {
+            sdm.configuration.sdm.goalScheduler = [new KubernetesFulfillmentGoalScheduler()];
+            sdm.addGoalCompletionListener(new KubernetesJobDeletingGoalCompletionListenerFactory(sdm).create());
+        },
+    };
+}

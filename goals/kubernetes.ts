@@ -122,8 +122,8 @@ async function kubernetesApplicationData(
  */
 function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplication> {
     const path = `/${repo}/`;
-    const host = `play-${(ns === "testing") ? "t" : "p"}.sdm.io`;
-    const tlsSecret = `play-${ns.substring(0, 4)}-sdm-io-tls`;
+    const host = `play-${(ns === "testing") ? "t" : "p"}.uhura.io`;
+    const tlsSecret = `play-${ns.substring(0, 4)}-uhura-io-tls`;
     const ingressSpec = {
         metadata: {
             annotations: {

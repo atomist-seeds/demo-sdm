@@ -135,10 +135,10 @@ rules:
         containers:
           - args:
               - --context=dir:///atm/home
-              - --destination=gcr.io/kubernetes-sdm-demo/${push.repo.name}:${push.after.version}
+              - --destination=gcr.io/atomist-demo-0/${push.repo.name}:${push.after.version}
               - --dockerfile=Dockerfile
               - --cache=true
-              - --cache-repo=gcr.io/kubernetes-sdm-demo/layer-cache
+              - --cache-repo=gcr.io/atomist-demo-0/layer-cache
               - --force
             image: gcr.io/kaniko-project/executor:latest
             name: kaniko
@@ -160,7 +160,7 @@ rules:
         containers:
           - args:
               - -c
-              - echo '{"SdmGoal":{"push":{"after":{"images":[{"imageName":"gcr.io/kubernetes-sdm-demo/${push.repo.name}:${push.after.version}"}]}}}}' > "$ATOMIST_RESULT"
+              - echo '{"SdmGoal":{"push":{"after":{"images":[{"imageName":"gcr.io/atomist-demo-0/${push.repo.name}:${push.after.version}"}]}}}}' > "$ATOMIST_RESULT"
             command:
               - /bin/sh
             image: busybox:1.31.1-uclibc

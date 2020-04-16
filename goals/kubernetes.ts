@@ -27,7 +27,7 @@ import { KubernetesApplication } from "@atomist/sdm/lib/core/pack/k8s/kubernetes
 import * as _ from "lodash";
 
 const k8sDeployRegistration = {
-    name: "@atomist/k8s",
+    name: "@atomist/k8s-sdm_k8s-internal-demo",
     applicationData: kubernetesApplicationData,
 };
 

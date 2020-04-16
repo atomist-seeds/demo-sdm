@@ -65,13 +65,13 @@ rules:
       - name: maven version
         containers:
           - args:
-              - -c
               - >-
                 v=$(mvn --batch-mode -Dmaven.repo.local=.m2 help:evaluate -Dexpression=project.version -q -DforceStdout | cut -d- -f1)-$(date -u +%Y%m%d%H%M%S) &&
                 mvn --batch-mode -Dmaven.repo.local=.m2 versions:set -DnewVersion="$v" versions:commit &&
                 printf '{"SdmGoal":{"description":"Versioned `%s`","push":{"after":{"version":"%s"}}}}' "$v" "$v" > "$ATOMIST_RESULT"
             command:
               - /bin/bash
+              - -c
             image: maven:3.6.3-jdk-8
             name: maven-version
             resources:

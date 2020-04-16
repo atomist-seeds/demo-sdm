@@ -15,14 +15,12 @@
  */
 
 import { Configuration } from "@atomist/automation-client/lib/configuration";
-import { metadata } from "@atomist/sdm/lib/api-helper/misc/extensionPack";
-import { ExtensionPack } from "@atomist/sdm/lib/api/machine/ExtensionPack";
 import { runningInK8s } from "@atomist/sdm/lib/core/goal/container/util";
 import { gcpSupport } from "@atomist/sdm/lib/core/pack/gcp";
 import { githubGoalStatusSupport } from "@atomist/sdm/lib/core/pack/github-goal-status/github";
 import { goalStateSupport } from "@atomist/sdm/lib/core/pack/goal-state/goalState";
 import { k8sSupport } from "@atomist/sdm/lib/core/pack/k8s/k8s";
-import { KubernetesFulfillmentGoalScheduler } from "@atomist/sdm/lib/core/pack/k8s/scheduler/KubernetesFulfillmentGoalScheduler";
+import { k8sGoalSchedulingSupport } from "@atomist/sdm/lib/core/pack/k8s/scheduler/goalScheduling";
 import * as _ from "lodash";
 
 export const DemoSupport = async (cfg: Configuration) => {
@@ -35,7 +33,7 @@ export const DemoSupport = async (cfg: Configuration) => {
                     },
                 },
                 cache: {
-                    bucket: "atm-demo-sdm-goal-cache-demo",
+                    bucket: "atomist-demo-0-cache-6305d78",
                     path: "demo-sdm-cache",
                 },
                 extensionPacks: [
@@ -46,7 +44,7 @@ export const DemoSupport = async (cfg: Configuration) => {
                             enabled: true,
                         },
                     }),
-                    k8sGoalFulfillingSchedulingSupport(),
+                    k8sGoalSchedulingSupport(),
                     k8sSupport({ addCommands: true }),
                 ],
             },
@@ -63,12 +61,3 @@ export const DemoSupport = async (cfg: Configuration) => {
         return _.defaultsDeep(cfg, defaultCfg);
     }
 };
-
-function k8sGoalFulfillingSchedulingSupport(): ExtensionPack {
-    return {
-        ...metadata("k8s-goal-fulfilling-scheduling"),
-        configure: sdm => {
-            sdm.configuration.sdm.goalScheduler = [new KubernetesFulfillmentGoalScheduler()];
-        },
-    };
-}

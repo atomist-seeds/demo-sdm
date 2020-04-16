@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-import {
-    GitProject,
-    logger,
-} from "@atomist/automation-client";
+import { GitProject } from "@atomist/automation-client/lib/project/git/GitProject";
+import { logger } from "@atomist/automation-client/lib/util/logger";
+import { SdmGoalEvent } from "@atomist/sdm/lib/api/goal/SdmGoalEvent";
 import {
     ProductionEnvironment,
-    SdmGoalEvent,
     StagingEnvironment,
-} from "@atomist/sdm";
-import { GoalMaker } from "@atomist/sdm-core";
-import {
-    KubernetesApplication,
-    KubernetesDeploy,
-} from "@atomist/sdm-pack-k8s";
+} from "@atomist/sdm/lib/api/goal/support/environment";
+import { GoalMaker } from "@atomist/sdm/lib/core/machine/yaml/mapGoals";
+import { KubernetesDeploy } from "@atomist/sdm/lib/core/pack/k8s/deploy/goal";
+import { KubernetesApplication } from "@atomist/sdm/lib/core/pack/k8s/kubernetes/request";
 import * as _ from "lodash";
 
 const k8sDeployRegistration = {
@@ -64,6 +60,7 @@ async function kubernetesApplicationData(
     const ingress = ingressFromGoal(goalEvent.repo.name, ns);
     const deploymentSpecPatch = {
         spec: {
+            replicas,
             template: {
                 spec: {
                     affinity: {
@@ -116,7 +113,6 @@ async function kubernetesApplicationData(
         name,
         ns,
         port,
-        replicas,
         ...ingress,
     };
 }
@@ -127,7 +123,6 @@ async function kubernetesApplicationData(
 function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplication> {
     const path = `/${repo}/`;
     const host = `play-${(ns === "testing") ? "t" : "p"}.sdm.io`;
-    const protocol = "https";
     const tlsSecret = `play-${ns.substring(0, 4)}-sdm-io-tls`;
     const ingressSpec = {
         metadata: {
@@ -140,6 +135,7 @@ function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplicatio
         spec: {
             rules: [
                 {
+                    host,
                     http: {
                         paths: [
                             {
@@ -149,14 +145,17 @@ function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplicatio
                     },
                 },
             ],
+            tls: [
+                {
+                    hosts: [host],
+                    secretName: tlsSecret,
+                },
+            ],
         },
     };
 
     return {
-        host,
         path,
-        tlsSecret,
-        protocol,
         ingressSpec,
     };
 }

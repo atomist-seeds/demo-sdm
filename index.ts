@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-import { configureYaml } from "@atomist/sdm-core";
+import { configureYaml } from "@atomist/sdm/lib/core/machine/yaml/configureYaml";
 
 export const configuration = configureYaml("atomist.yaml");

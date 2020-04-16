@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    GoalMaker,
-    Tag,
-} from "@atomist/sdm-core";
+import { Tag } from "@atomist/sdm/lib/core/goal/common/Tag";
+import { GoalMaker } from "@atomist/sdm/lib/core/machine/yaml/mapGoals";
 
 export const tag: GoalMaker = async () => new Tag();

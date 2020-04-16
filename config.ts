@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-import { Configuration } from "@atomist/automation-client";
-import {
-    ExtensionPack,
-    metadata,
-} from "@atomist/sdm";
-import {
-    githubGoalStatusSupport,
-    goalStateSupport,
-    // k8sGoalSchedulingSupport,
-} from "@atomist/sdm-core";
-import { runningInK8s } from "@atomist/sdm-core/lib/goal/container/util";
-import { KubernetesFulfillmentGoalScheduler } from "@atomist/sdm-core/lib/pack/k8s/KubernetesFulfillmentGoalScheduler";
-import { KubernetesJobDeletingGoalCompletionListenerFactory } from "@atomist/sdm-core/lib/pack/k8s/KubernetesJobDeletingGoalCompletionListener";
-import { gcpSupport } from "@atomist/sdm-pack-gcp";
-import { k8sSupport } from "@atomist/sdm-pack-k8s";
+import { Configuration } from "@atomist/automation-client/lib/configuration";
+import { metadata } from "@atomist/sdm/lib/api-helper/misc/extensionPack";
+import { ExtensionPack } from "@atomist/sdm/lib/api/machine/ExtensionPack";
+import { runningInK8s } from "@atomist/sdm/lib/core/goal/container/util";
+import { gcpSupport } from "@atomist/sdm/lib/core/pack/gcp";
+import { githubGoalStatusSupport } from "@atomist/sdm/lib/core/pack/github-goal-status/github";
+import { goalStateSupport } from "@atomist/sdm/lib/core/pack/goal-state/goalState";
+import { k8sSupport } from "@atomist/sdm/lib/core/pack/k8s/k8s";
+import { KubernetesFulfillmentGoalScheduler } from "@atomist/sdm/lib/core/pack/k8s/scheduler/KubernetesFulfillmentGoalScheduler";
 import * as _ from "lodash";
 
 export const DemoSupport = async (cfg: Configuration) => {
@@ -52,7 +46,6 @@ export const DemoSupport = async (cfg: Configuration) => {
                             enabled: true,
                         },
                     }),
-                    // k8sGoalSchedulingSupport(),
                     k8sGoalFulfillingSchedulingSupport(),
                     k8sSupport({ addCommands: true }),
                 ],
@@ -76,7 +69,6 @@ function k8sGoalFulfillingSchedulingSupport(): ExtensionPack {
         ...metadata("k8s-goal-fulfilling-scheduling"),
         configure: sdm => {
             sdm.configuration.sdm.goalScheduler = [new KubernetesFulfillmentGoalScheduler()];
-            sdm.addGoalCompletionListener(new KubernetesJobDeletingGoalCompletionListenerFactory(sdm).create());
         },
     };
 }

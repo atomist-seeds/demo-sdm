@@ -2,7 +2,11 @@
   "name": "@atomist/demo-sdm",
   "version": "1.0.0",
   "description": "Atomist SDM to build and deploy demo projects",
-  "author": "Atomist, Inc.",
+  "author": {
+    "name": "Atomist",
+    "email": "support@atomist.com",
+    "url": "https://atomist.com/"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -21,11 +25,8 @@
     "url": "https://github.com/atomist-seeds/demo-sdm/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "2.0.0-master.20191213160252",
-    "@atomist/sdm": "2.0.0-master.20191213214023",
-    "@atomist/sdm-core": "2.0.0-simplify-k8s-scheduler.20191219073826",
-    "@atomist/sdm-pack-gcp": "0.1.0-master.20191206224938",
-    "@atomist/sdm-pack-k8s": "2.0.0-master.20191213151809",
+    "@atomist/automation-client": "^2.0.0-master.20200311165330",
+    "@atomist/sdm": "^2.0.0-master.20200330164246",
     "@atomist/slack-messages": "^1.1.1",
     "@types/lodash": "^4.14.136",
     "@types/node": "^12.6.2",
@@ -50,7 +51,7 @@
   },
   "scripts": {
     "autotest": "supervisor --watch index.ts,lib,test --extensions ts --no-restart-on exit --quiet --exec npm -- test",
-    "build": "run-s compile test lint doc",
+    "build": "run-s clean compile test lint doc",
     "clean": "run-p clean:compile clean:test clean:doc clean:run",
     "clean:compile": "rimraf git-info.json \"*.{d.ts,js{,.map}}\" \"{commands,goals,lib,test}/**/*.{d.ts,js{,.map}}\" lib/typings/types.ts",
     "clean:dist": "run-s clean clean:npm",
@@ -67,8 +68,7 @@
     "lint:fix": "npm run lint -- --fix",
     "start": "atm-start",
     "test": "mocha --require espower-typescript/guess \"test/**/*.test.ts\"",
-    "test:one": "mocha --require espower-typescript/guess \"test/**/${TEST:-*.test.ts}\"",
-    "typedoc": "npm run doc"
+    "test:one": "mocha --require espower-typescript/guess \"test/**/${TEST:-*.test.ts}\""
   },
   "engines": {
     "node": ">=8.2.0",

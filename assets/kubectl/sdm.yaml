@@ -82,9 +82,7 @@ spec:
         app.kubernetes.io/version: "1"
     spec:
       containers:
-        - name: demo-sdm
-          image: atomist/demo-sdm:1.0.0
-          env:
+        - env:
             - name: ATOMIST_CONFIG_PATH
               value: /opt/atm/client.config.json
             - name: ATOMIST_GOAL_SCHEDULER
@@ -93,6 +91,13 @@ spec:
               value: /home/atomist
             - name: TMPDIR
               value: /tmp
+          image: atomist/demo-sdm:1.0.0
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+          name: demo-sdm
           ports:
             - name: http
               containerPort: 2866
@@ -101,22 +106,7 @@ spec:
             httpGet:
               path: /health
               port: http
-              scheme: HTTP
             initialDelaySeconds: 20
-            timeoutSeconds: 3
-            periodSeconds: 20
-            successThreshold: 1
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-              scheme: HTTP
-            initialDelaySeconds: 20
-            timeoutSeconds: 3
-            periodSeconds: 20
-            successThreshold: 1
-            failureThreshold: 3
           resources:
             limits:
               cpu: 1000m
@@ -132,23 +122,21 @@ spec:
             runAsNonRoot: true,
             runAsUser: 2866
           volumeMounts:
-            - name: demo-sdm
-              mountPath: /opt/atm
+            - mountPath: /opt/atm
+              name: demo-sdm
               readOnly: true
-            - name: atomist-home
-              mountPath: /home/atomist
-            - name: sdm-tmp
-              mountPath: /tmp
+            - mountPath: /home/atomist
+              name: atomist-home
+            - mountPath: /tmp
+              name: sdm-tmp
       initContainers:
         - args:
-            - -c
             - git config --global user.email 'bot@atomist.com' && git config --global user.name 'Atomist Bot'
-          command:
-            - /bin/sh
+          command: ["/bin/sh", "-c"]
           env:
             - name: HOME
               value: /home/atomist
-          image: atomist/sdm-base:0.4.0-20191204153918
+          image: atomist/sdm-base:0.4.1
           name: atomist-home-git
           securityContext:
             allowPrivilegeEscalation: false
@@ -158,8 +146,8 @@ spec:
             runAsNonRoot: true,
             runAsUser: 2866
           volumeMounts:
-            - name: atomist-home
-              mountPath: /home/atomist
+            - mountPath: /home/atomist
+              name: atomist-home
       securityContext:
         fsGroup: 2866
       serviceAccountName: demo-sdm
@@ -169,6 +157,6 @@ spec:
             defaultMode: 288
             secretName: demo-sdm
         - emptyDir: {}
-          name: "atomist-home"
+          name: atomist-home
         - emptyDir: {}
-          name: "sdm-tmp"
+          name: sdm-tmp

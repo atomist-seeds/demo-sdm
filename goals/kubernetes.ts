@@ -63,23 +63,6 @@ async function kubernetesApplicationData(
             replicas,
             template: {
                 spec: {
-                    affinity: {
-                        nodeAffinity: {
-                            requiredDuringSchedulingIgnoredDuringExecution: {
-                                nodeSelectorTerms: [
-                                    {
-                                        matchExpressions: [
-                                            {
-                                                key: "sandbox.gke.io/runtime",
-                                                operator: "In",
-                                                values: ["gvisor"],
-                                            },
-                                        ],
-                                    },
-                                ],
-                            },
-                        },
-                    },
                     containers: [
                         {
                             env: [
@@ -92,15 +75,6 @@ async function kubernetesApplicationData(
                                     value: `${goal.sdm.configuration.environment}:${ns}`,
                                 },
                             ],
-                        },
-                    ],
-                    runtimeClassName: "gvisor",
-                    tolerations: [
-                        {
-                            effect: "NoSchedule",
-                            key: "sandbox.gke.io/runtime",
-                            operator: "Equal",
-                            value: "gvisor",
                         },
                     ],
                 },

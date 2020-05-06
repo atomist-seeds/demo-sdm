@@ -136,7 +136,7 @@ rules:
             - args:
                 - sleep 3600
               command:
-                - /bin/sh
+                - /busybox/sh
                 - "-c"
               image: gcr.io/kaniko-project/executor:debug-v0.21.0
               name: kaniko

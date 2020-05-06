@@ -131,31 +131,107 @@ rules:
       - has_file: Dockerfile
     depends_on: build
     goals:
-      - name: kaniko build
-        containers:
-          - args:
-              - --context=dir:///atm/home
-              - --destination=gcr.io/atomist-demo-0/${push.repo.name}:${push.after.version}
-              - --dockerfile=Dockerfile
-              - --cache=true
-              - --cache-repo=gcr.io/atomist-demo-0/layer-cache
-              - --force
-            image: gcr.io/kaniko-project/executor:v0.21.0
-            name: kaniko
-            resources:
-              limits:
-                cpu: 1000m
-                memory: 2048Mi
-              requests:
-                cpu: 100m
-                memory: 1024Mi
-            securityContext:
-              runAsGroup: 0
-              runAsNonRoot: false
-              runAsUser: 0
-        input:
-          - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
-          - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+      - - name: kaniko debug21
+          containers:
+            - args:
+                - sleep 3600
+              command:
+                - /bin/sh
+                - "-c"
+              image: gcr.io/kaniko-project/executor:debug-v0.21.0
+              name: kaniko
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2048Mi
+                requests:
+                  cpu: 100m
+                  memory: 1024Mi
+              securityContext:
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+          input:
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+        - name: kaniko 21
+          containers:
+            - args:
+                - --context=dir:///atm/home
+                - --destination=gcr.io/atomist-demo-0/${push.repo.name}:21-${push.after.version}
+                - --dockerfile=Dockerfile
+                - --cache=true
+                - --cache-repo=gcr.io/atomist-demo-0/layer-cache
+                - --force
+                - --verbosity=info
+              image: gcr.io/kaniko-project/executor:debug-v0.21.0
+              name: kaniko
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2048Mi
+                requests:
+                  cpu: 100m
+                  memory: 1024Mi
+              securityContext:
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+          input:
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+        - name: kaniko 20
+          containers:
+            - args:
+                - --context=dir:///atm/home
+                - --destination=gcr.io/atomist-demo-0/${push.repo.name}:20-${push.after.version}
+                - --dockerfile=Dockerfile
+                - --cache=true
+                - --cache-repo=gcr.io/atomist-demo-0/layer-cache
+                - --force
+                - --verbosity=info
+              image: gcr.io/kaniko-project/executor:v0.20.0
+              name: kaniko
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2048Mi
+                requests:
+                  cpu: 100m
+                  memory: 1024Mi
+              securityContext:
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+          input:
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
+        - name: kaniko 19
+          containers:
+            - args:
+                - --context=dir:///atm/home
+                - --destination=gcr.io/atomist-demo-0/${push.repo.name}:19-${push.after.version}
+                - --dockerfile=Dockerfile
+                - --cache=true
+                - --cache-repo=gcr.io/atomist-demo-0/layer-cache
+                - --force
+                - --verbosity=info
+              image: gcr.io/kaniko-project/executor:v0.19.0
+              name: kaniko
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2048Mi
+                requests:
+                  cpu: 100m
+                  memory: 1024Mi
+              securityContext:
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+          input:
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
+            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
       - name: image link
         containers:
           - args:

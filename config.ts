@@ -26,14 +26,12 @@ import * as _ from "lodash";
 export const DemoSupport = async (cfg: Configuration) => {
     if (runningInK8s()) {
         const defaultCfg = {
+            cluster: {
+                workers: 2,
+            },
             sdm: {
-                k8s: {
-                    job: {
-                        cleanupInterval: 1000 * 60 * 10,
-                    },
-                },
                 cache: {
-                    bucket: "atomist-demo-0-cache-6305d78",
+                    bucket: "atomist-demo-0-cache",
                     path: "demo-sdm-cache",
                 },
                 extensionPacks: [
@@ -47,6 +45,11 @@ export const DemoSupport = async (cfg: Configuration) => {
                     k8sGoalSchedulingSupport(),
                     k8sSupport({ addCommands: true }),
                 ],
+                k8s: {
+                    job: {
+                        cleanupInterval: 1000 * 60 * 10,
+                    },
+                },
             },
         };
         return _.defaultsDeep(cfg, defaultCfg);

@@ -16,6 +16,13 @@ an SDM.
 
 [atomist-doc]: https://docs.atomist.com/ (Atomist Documentation)
 
+## Generating a Key Pair
+
+```shell
+$ openssl genrsa -des3 -out private.pem 2048
+$ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+```
+
 ## Demos
 
 ### GeneratorCommand: Project Creation from seed

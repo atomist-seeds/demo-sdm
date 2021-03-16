@@ -67,7 +67,7 @@ rules:
         containers:
           - args:
               - >-
-                v=$(mvn --batch-mode -Dmaven.repo.local=.m2 help:evaluate -Dexpression=project.version -q -DforceStdout | cut -d- -f1)-$(date -u +%Y%m%d%H%M%S) &&
+                v=$(mvn --batch-mode -Dmaven.repo.local=.m2 org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | cut -d- -f1)-$(date -u +%Y%m%d%H%M%S) &&
                 mvn --batch-mode -Dmaven.repo.local=.m2 versions:set -DnewVersion="$v" versions:commit &&
                 printf '{"SdmGoal":{"description":"Versioned `%s`","push":{"after":{"version":"%s"}}}}' "$v" "$v" > "$ATOMIST_RESULT"
             command:
@@ -136,13 +136,13 @@ rules:
           containers:
             - args:
                 - --context=dir:///atm/home
-                - --destination=gcr.io/atomist-demo-0/${push.repo.name}:${push.after.version}
+                - --destination=atomistplayground/${push.repo.name}:${push.after.version}
                 - --dockerfile=Dockerfile
                 - --cache=true
-                - --cache-repo=gcr.io/atomist-demo-0/layer-cache
+                - --cache-repo=atomistplayground/layer-cache
                 - --force
                 - --verbosity=info
-              image: gcr.io/kaniko-project/executor:debug-v0.24.0
+              image: gcr.io/kaniko-project/executor:v1.5.1
               name: kaniko
               resources:
                 limits:
@@ -155,32 +155,16 @@ rules:
                 runAsGroup: 0
                 runAsNonRoot: false
                 runAsUser: 0
-          input:
-            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
-            - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target
-        - name: kaniko 1
-          containers:
-            - args:
-                - --context=dir:///atm/home
-                - --destination=gcr.io/atomist-demo-0/${push.repo.name}:1-${push.after.version}
-                - --dockerfile=Dockerfile
-                - --cache=true
-                - --cache-repo=gcr.io/atomist-demo-0/layer-cache
-                - --force
-                - --verbosity=info
-              image: gcr.io/kaniko-project/executor:v1.0.0
-              name: kaniko
-              resources:
-                limits:
-                  cpu: 1000m
-                  memory: 2048Mi
-                requests:
-                  cpu: 100m
-                  memory: 1024Mi
-              securityContext:
-                runAsGroup: 0
-                runAsNonRoot: false
-                runAsUser: 0
+              env:
+                - name: "DOCKER_CONFIG"
+                  value: "/atm/input/.docker/"
+              secrets:
+                fileMounts:
+                  - mountPath: /atm/input/.docker/config.json
+                    value:
+                      provider:
+                        type: docker
+                        names: atomist
           input:
             - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/pom
             - classifier: ${push.repo.owner}/${push.repo.name}/${push.after.sha}/target

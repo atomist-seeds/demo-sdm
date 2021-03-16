@@ -15,52 +15,71 @@
  */
 
 import { Configuration } from "@atomist/automation-client/lib/configuration";
-import { runningInK8s } from "@atomist/sdm/lib/core/goal/container/util";
-import { gcpSupport } from "@atomist/sdm/lib/core/pack/gcp";
-import { githubGoalStatusSupport } from "@atomist/sdm/lib/core/pack/github-goal-status/github";
-import { goalStateSupport } from "@atomist/sdm/lib/core/pack/goal-state/goalState";
-import { k8sSupport } from "@atomist/sdm/lib/core/pack/k8s/k8s";
-import { k8sGoalSchedulingSupport } from "@atomist/sdm/lib/core/pack/k8s/scheduler/goalScheduling";
+import { PullRequest } from "@atomist/automation-client/lib/operations/edit/editModes";
+import { SoftwareDeliveryMachine } from "@atomist/sdm";
+import { k8sSupport } from "@atomist/sdm/lib/pack/k8s";
+import * as fs from "fs-extra";
 import * as _ from "lodash";
 
 export const DemoSupport = async (cfg: Configuration) => {
-    if (runningInK8s()) {
-        const defaultCfg = {
-            cluster: {
-                workers: 2,
+    const defaultCfg = {
+        sdm: {
+            cache: {
+                path: "/tmp/cache",
             },
-            sdm: {
-                cache: {
-                    bucket: "atomist-demo-0-cache",
-                    path: "demo-sdm-cache",
+            goalSigning: {
+                enabled: true,
+                scope: "all",
+                signingKey: {
+                    name: "atomist.com/demo-sdm",
+                    passphrase: "c085cabb-396c-4999-abef-c4670bc79054",
+                    privateKey: (await fs.readFile("private.pem")).toString(),
+                    publicKey: (await fs.readFile("public.pem")).toString(),
                 },
-                extensionPacks: [
-                    gcpSupport(),
-                    githubGoalStatusSupport(),
-                    goalStateSupport({
-                        cancellation: {
-                            enabled: true,
-                        },
-                    }),
-                    k8sGoalSchedulingSupport(),
-                    k8sSupport({ addCommands: true }),
-                ],
-                k8s: {
-                    job: {
-                        cleanupInterval: 1000 * 60 * 10,
+                verificationKeys: [{
+                    name: "atomist.com/demo-sdm",
+                    publicKey: (await fs.readFile("public.pem")).toString(),
+                }],
+            },
+            extensionPacks: [
+                {
+                    name: "dockerfile",
+                    description: "Add Dockerfiles to projects",
+                    configure: (sdm: SoftwareDeliveryMachine) => {
+                        sdm.addCodeTransformCommand({
+                            name: "addDockerfile",
+                            intent: "add dockerfile",
+                            transformPresentation: (papi, p) => new PullRequest(`add-dockerfile`, "Add Dockerfile", "This pull requests add our standard Maven Dockerfile"),
+                            transform: async (p, papi) => {
+                                await p.addFile("Dockerfile", `FROM openjdk:8
+
+LABEL maintainer="Atomist <docker@atomist.com>"
+
+RUN mkdir -p /app
+
+WORKDIR /app
+
+EXPOSE 8080
+
+CMD ["-jar", "spring-boot.jar"]
+
+ENTRYPOINT ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Xmx256m", "-Djava.security.egd=file:/dev/urandom"]
+
+COPY target/spring-boot.jar spring-boot.jar
+`);
+                            },
+                        });
+                        return sdm;
                     },
                 },
-            },
-        };
-        return _.defaultsDeep(cfg, defaultCfg);
-    } else {
-        const defaultCfg = {
-            sdm: {
-                cache: {
-                    path: "/tmp/cache",
+                k8sSupport({ addCommands: true }),
+            ],
+            k8s: {
+                job: {
+                    cleanupInterval: 1000 * 60 * 10,
                 },
             },
-        };
-        return _.defaultsDeep(cfg, defaultCfg);
-    }
+        },
+    };
+    return _.defaultsDeep(cfg, defaultCfg);
 };

@@ -22,12 +22,14 @@ import {
     StagingEnvironment,
 } from "@atomist/sdm/lib/api/goal/support/environment";
 import { GoalMaker } from "@atomist/sdm/lib/core/machine/yaml/mapGoals";
-import { KubernetesDeploy } from "@atomist/sdm/lib/core/pack/k8s/deploy/goal";
-import { KubernetesApplication } from "@atomist/sdm/lib/core/pack/k8s/kubernetes/request";
+import {
+    KubernetesApplication,
+    KubernetesDeploy,
+} from "@atomist/sdm/lib/pack/k8s";
 import * as _ from "lodash";
 
 const k8sDeployRegistration = {
-    name: "@atomist/k8s-sdm_k8s-internal-demo",
+    // name: "@atomist/demo-sdm",
     applicationData: kubernetesApplicationData,
 };
 
@@ -97,7 +99,6 @@ async function kubernetesApplicationData(
 function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplication> {
     const path = `/${repo}/`;
     const host = `play-${(ns === "testing") ? "t" : "p"}.uhura.io`;
-    const tlsSecret = `play-${ns.substring(0, 4)}-uhura-io-tls`;
     const ingressSpec = {
         metadata: {
             annotations: {
@@ -117,12 +118,6 @@ function ingressFromGoal(repo: string, ns: string): Partial<KubernetesApplicatio
                             },
                         ],
                     },
-                },
-            ],
-            tls: [
-                {
-                    hosts: [host],
-                    secretName: tlsSecret,
                 },
             ],
         },
